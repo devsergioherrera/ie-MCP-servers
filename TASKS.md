@@ -10,14 +10,7 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
   - Agregar bloque `auth_request /_auth;` en `deploy/nginx/mcp.ie.conf`.
   - Crear endpoint `/_auth` (Lua o subrequest a un mini-servicio) que valide `Authorization: Bearer <token>`.
   - Rotar token via variable de entorno del host.
-- [ ] **#2 Ejecutar GRANTs en SQL Server** (manual como `sa`):
-  ```sql
-  USE SIE;
-  GRANT SELECT ON dbo.CAMION_X_DIA TO mcp_reader;
-
-  USE [EMPAQUE(PR)];
-  GRANT SELECT ON dbo.vw_EtiquetasBI TO mcp_reader;
-  ```
+- [ ] **#2 Ejecutar GRANTs en SQL Server** (manual como `sa`) — script consolidado e idempotente en `data-mcp-servers/mssql/grants.sql`. Cubre las 16 entidades del sistema logistico (5 SIE + 11 EMPAQUE(PR)). El script crea el USER si falta y otorga SELECT a las tablas/vistas listadas. Incluye query de verificacion al final.
 - [ ] **#3 TLS en Nginx** — habilitar HTTPS para `mcp.ie`. Decidir: cert interno IE o Let's Encrypt (requiere DNS publico). Por ahora solo escucha en `:80`.
 - [x] **#4 Validar PK real de `vw_EtiquetasBI`** — corregido a `Etiqueta` (NCHAR). Pero ver #15.
 - [ ] **#15 PK de `vw_EtiquetasBI` no es estrictamente unica** — los registros con `Desde='ETIQUETA_LINER'` pueden tener `Etiqueta` como cadena de espacios (NCHAR sin trimear y sin codigo). Eso rompe la garantia de unicidad que asume DAB con `key-fields: ["Etiqueta"]`: si hay >1 LINER sin codigo, la paginacion por cursor puede colisionar. Opciones:

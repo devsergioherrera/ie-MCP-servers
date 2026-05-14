@@ -15,12 +15,218 @@
         "key-fields": [ "Etiqueta" ]
       },
       "permissions": [
-        {
-          "role": "anonymous",
-          "actions": [ "read" ]
-        }
+        { "role": "anonymous", "actions": [ "read" ] }
       ],
-      "description": "Vista BI normalizada de etiquetas (BD EMPAQUE(PR)). Unifica las tres tablas ETIQUETA, ETIQUETA_LINER y ETIQUETA_ROLLO (sin herencia) y normaliza unidades por ERP. Columnas: Etiqueta (PK, codigo de barras unico), Item (codigo ERP del producto), Descripcion, UnidadInventario, Linea, Cantidad, PesoNeto, PesoBruto, Metros, EstadoEtiqueta, TipoEtiquetado, Desde (origen del registro), Valor (unidades normalizadas para BI)."
+      "description": "Vista BI normalizada de etiquetas (BD EMPAQUE(PR)). Unifica las tres tablas ETIQUETA, ETIQUETA_LINER y ETIQUETA_ROLLO (sin herencia) y normaliza unidades por ERP. Columnas: Etiqueta (PK, codigo de barras), Item (codigo ERP), Descripcion, UnidadInventario, Linea, Cantidad, PesoNeto, PesoBruto, Metros, EstadoEtiqueta, TipoEtiquetado, Desde (origen: ETIQUETA / ETIQUETA_LINER / ETIQUETA_ROLLO), Valor (cantidad normalizada para BI segun unidad ERP — USAR ESTA para sumas analiticas). FUENTE OFICIAL para metricas. OJO: cuando Desde='ETIQUETA_LINER' la columna Etiqueta puede venir como cadena de espacios (placeholder)."
+    },
+
+    "Etiqueta": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ETIQUETA"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Etiquetas fisicas de producto terminado (BD EMPAQUE(PR)). Cada fila es una paca / rollo / pallet con codigo de barras unico (idEtiqueta). Para analisis preferir vw_EtiquetasBI (entidad veb) que ya unifica con ETIQUETA_LINER y ETIQUETA_ROLLO. Estados tipicos: ACTIVA, ELIMINADA, DESPACHADA. tipoEtiquetado distingue PACA / ROLLO / etc.",
+      "relationships": {
+        "kardex": {
+          "cardinality": "many",
+          "target.entity": "KardexBodega",
+          "source.fields": [ "idEtiqueta" ],
+          "target.fields": [ "etiqueta" ]
+        },
+        "alistamientos": {
+          "cardinality": "many",
+          "target.entity": "AlistamientoEtiqueta",
+          "source.fields": [ "idEtiqueta" ],
+          "target.fields": [ "etiqueta" ]
+        }
+      }
+    },
+
+    "EtiquetaLiner": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ETIQUETA_LINER"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Detalle especifico de etiquetas tipo LINER (carton corrugado) en BD EMPAQUE(PR). Columnas adicionales: ancho, largo (cm), gramaje (g/m2), idLote. NO hereda de ETIQUETA — son tablas separadas. La vista veb las unifica para BI."
+    },
+
+    "EtiquetaRollo": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ETIQUETA_ROLLO"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Detalle especifico de etiquetas tipo ROLLO (papel en bobina) en BD EMPAQUE(PR). Columnas adicionales: diametro (cm), espesor (micras), metrosLineales. NO hereda de ETIQUETA — son tablas separadas. La vista veb las unifica para BI."
+    },
+
+    "KardexBodega": {
+      "source": {
+        "type": "table",
+        "object": "dbo.KARDEX_BODEGA"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Inventario fisico de etiquetas en bodegas (BD EMPAQUE(PR)). CRITICO para auditorias — NUNCA modificar. tipoEntrada: M=Manual, B=Banda. tipoSalida: M=Manual, B=Banda, D=Despacho. enBodega: 1=esta en bodega, 0=fue despachada. fechaIngreso y fechaSalida marcan el ciclo. idRemision liga al despacho (cross-DB con DOCUMENTOS_DESPACHADOS.SECUENCIAL en SIE). area es el codigo de ubicacion fisica.",
+      "relationships": {
+        "etiqueta_ref": {
+          "cardinality": "one",
+          "target.entity": "Etiqueta",
+          "source.fields": [ "etiqueta" ],
+          "target.fields": [ "idEtiqueta" ]
+        }
+      }
+    },
+
+    "Alistamiento": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ALISTAMIENTO"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Proceso de picking de un despacho programado (BD EMPAQUE(PR)). Relacion 1:1 con CAMION_X_DIA via idCamionDia (CROSS-DB → SIE.CAMION_X_DIA.COD_CAMION, resolver con read_records adicional). Estados: SIN_ALISTAR (virtual, no hay fila), EN_PROCESO, ALISTADO, ALISTADO_INCOMPLETO, ANULADO. idUsuario es el operador. fechaInicio/fechaFin acotan duracion. observaciones puede tener notas del operador.",
+      "relationships": {
+        "etiquetasLeidas": {
+          "cardinality": "many",
+          "target.entity": "AlistamientoEtiqueta",
+          "source.fields": [ "idAlistamiento" ],
+          "target.fields": [ "idAlistamiento" ]
+        }
+      }
+    },
+
+    "AlistamientoEtiqueta": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ALISTAMIENTO_ETIQUETA"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Etiquetas leidas durante un alistamiento (BD EMPAQUE(PR)). PK compuesta (idAlistamiento, etiqueta). estado: ACTIVA o ELIMINADA (si el operador la quito por error). areaInicial/areaFinal y idBodegaInicial/idBodegaFinal trazan el movimiento. idUsuario es quien la leyo. Relacion N:1 con ALISTAMIENTO (un alistamiento tiene muchas etiquetas leidas) y N:1 con ETIQUETA.",
+      "relationships": {
+        "alistamiento": {
+          "cardinality": "one",
+          "target.entity": "Alistamiento",
+          "source.fields": [ "idAlistamiento" ],
+          "target.fields": [ "idAlistamiento" ]
+        },
+        "etiqueta_ref": {
+          "cardinality": "one",
+          "target.entity": "Etiqueta",
+          "source.fields": [ "etiqueta" ],
+          "target.fields": [ "idEtiqueta" ]
+        }
+      }
+    },
+
+    "FormatoAreaBodega": {
+      "source": {
+        "type": "table",
+        "object": "dbo.FormatoAreaBodega"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Plantillas de nomenclatura para codigos de area dentro de una bodega (BD EMPAQUE(PR)). Reemplaza reglas hardcodeadas. activo=1 indica que el formato esta vigente. Cada formato se descompone en componentes (ver FormatoAreaBodegaDetalle) y se asigna a bodegas via BodegaFormato. fechaCreacion/modificacion y creadoPor/modificadoPor son auditoria. Detalles administrados desde la app LECTURA DE BANDA por usuarios admin.",
+      "relationships": {
+        "detalles": {
+          "cardinality": "many",
+          "target.entity": "FormatoAreaBodegaDetalle",
+          "source.fields": [ "idFormatoAreaBodega" ],
+          "target.fields": [ "idFormatoAreaBodega" ]
+        },
+        "asignaciones": {
+          "cardinality": "many",
+          "target.entity": "BodegaFormato",
+          "source.fields": [ "idFormatoAreaBodega" ],
+          "target.fields": [ "idFormatoAreaBodega" ]
+        },
+        "historial": {
+          "cardinality": "many",
+          "target.entity": "FormatoAreaBodegaHistorial",
+          "source.fields": [ "idFormatoAreaBodega" ],
+          "target.fields": [ "idFormatoAreaBodega" ]
+        }
+      }
+    },
+
+    "FormatoAreaBodegaDetalle": {
+      "source": {
+        "type": "table",
+        "object": "dbo.FormatoAreaBodegaDetalle"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Componentes posicionales de un formato de area (BD EMPAQUE(PR)). El 'ADN' del patron: cada fila describe una pieza en orden. tipoComponente: 1=Literal (valorLiteral fijo), 2=Letra (rangoLetraDesde..rangoLetraHasta), 3=Digito (minimoNumero..maximoNumero), 4=Separador (valorLiteral, usualmente '-'), 5=NumeroLibre (minimoValor..maximoValor). El par (idFormatoAreaBodega, orden) es unico. obligatorio=1 indica que es obligatorio en el codigo de area.",
+      "relationships": {
+        "formato": {
+          "cardinality": "one",
+          "target.entity": "FormatoAreaBodega",
+          "source.fields": [ "idFormatoAreaBodega" ],
+          "target.fields": [ "idFormatoAreaBodega" ]
+        }
+      }
+    },
+
+    "BodegaFormato": {
+      "source": {
+        "type": "table",
+        "object": "dbo.BodegaFormato"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Asignacion N:M entre bodegas y formatos de area (BD EMPAQUE(PR)). Una bodega puede tener varios formatos en transicion, solo UN registro activo y esPredeterminado=1 a la vez por bodega (indice unico filtrado). activo=1 indica vigente. asignadoPor/modificadoPor y fechas para auditoria. idBodega es referencia logica a UBICACIONES_BODEGA.COD_UBICACION (sin FK formal — COD_UBICACION no es PK alli).",
+      "relationships": {
+        "formato": {
+          "cardinality": "one",
+          "target.entity": "FormatoAreaBodega",
+          "source.fields": [ "idFormatoAreaBodega" ],
+          "target.fields": [ "idFormatoAreaBodega" ]
+        }
+      }
+    },
+
+    "FormatoAreaBodegaHistorial": {
+      "source": {
+        "type": "table",
+        "object": "dbo.FormatoAreaBodegaHistorial"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Auditoria de cambios sobre formatos de area (BD EMPAQUE(PR)). accion: CREAR, ACTUALIZAR, ACTIVAR, DESACTIVAR. antesJson y despuesJson contienen el estado del formato en JSON serializado antes y despues del cambio. ejecutadoPor + fechaEjecucion marcan quien y cuando. Usado para trazabilidad de configuracion critica del Kardex.",
+      "relationships": {
+        "formato": {
+          "cardinality": "one",
+          "target.entity": "FormatoAreaBodega",
+          "source.fields": [ "idFormatoAreaBodega" ],
+          "target.fields": [ "idFormatoAreaBodega" ]
+        }
+      }
+    },
+
+    "ConfiguracionAreasKardex": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ConfiguracionAreasKardex"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Control de version del cache de reglas de validacion de areas del Kardex (BD EMPAQUE(PR)). Tabla con UN SOLO registro (idConfiguracion=1). versionReglas es un contador que se incrementa con cada cambio de formato; AreaBodegaKardexService lo usa para invalidar su cache en memoria. fechaActualizacion y actualizadoPor marcan el ultimo cambio."
     }
   }
 }

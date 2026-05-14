@@ -18,12 +18,8 @@
         "allow-credentials": false
       }
     },
-    "rest": {
-      "enabled": false
-    },
-    "graphql": {
-      "enabled": false
-    },
+    "rest": { "enabled": false },
+    "graphql": { "enabled": false },
     "mcp": {
       "enabled": true,
       "path": "/mcp",
@@ -36,22 +32,121 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de solo lectura sobre SQL Server de produccion de Integral de Empaques. Cubre logistica (BD SIE) y empaque (BD EMPAQUE(PR)). Entidades: CamionXDia (programacion de despachos) y veb (vista BI de etiquetas)."
+      "description": "MCP de solo lectura sobre SQL Server de produccion de Integral de Empaques. Cubre el sistema logistico completo: BD SIE (programacion de despachos: camiones, conductores, remisiones, items) y BD EMPAQUE(PR) (operacion: etiquetas, alistamiento, kardex, formatos de area, vistas BI). Las relaciones entre entidades de la MISMA base de datos estan declaradas explicitamente; las relaciones cross-database (ej. ALISTAMIENTO.idCamionDia -> CAMION_X_DIA.COD_CAMION) deben resolverse con dos llamadas read_records sucesivas."
     }
   },
   "entities": {
+    "Camion": {
+      "source": {
+        "type": "table",
+        "object": "dbo.CAMION"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Catalogo maestro de vehiculos disponibles para despacho (BD SIE). COD_CAMION es el codigo del VEHICULO real (no de la programacion). PLACAS es la matricula. TIPOLOGIA define la capacidad (1=sencillo, 2=doble troque, etc).",
+      "relationships": {
+        "programaciones": {
+          "cardinality": "many",
+          "target.entity": "CamionXDia",
+          "source.fields": [ "COD_CAMION" ],
+          "target.fields": [ "COD_REGISTRO_CAMION" ]
+        }
+      }
+    },
+
+    "Conductor": {
+      "source": {
+        "type": "table",
+        "object": "dbo.CONDUCTOR"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Catalogo maestro de conductores autorizados (BD SIE). COD_CONDUCTOR es PK. NOMBRES, TELEFONO y CI (cedula) son datos de contacto.",
+      "relationships": {
+        "programaciones": {
+          "cardinality": "many",
+          "target.entity": "CamionXDia",
+          "source.fields": [ "COD_CONDUCTOR" ],
+          "target.fields": [ "COD_CONDUCTOR" ]
+        }
+      }
+    },
+
     "CamionXDia": {
       "source": {
         "type": "table",
         "object": "dbo.CAMION_X_DIA"
       },
       "permissions": [
-        {
-          "role": "anonymous",
-          "actions": [ "read" ]
-        }
+        { "role": "anonymous", "actions": [ "read" ] }
       ],
-      "description": "Despacho programado (BD SIE): relaciona camion + conductor + fecha. Nucleo del flujo logistico. IMPORTANTE: COD_CAMION en esta tabla es el ID de la programacion del despacho, NO el codigo del vehiculo (ese esta en COD_REGISTRO_CAMION). Estados (campo ESTADO): C=Por Cargar, E=En proceso, D=Despachado, X=Anulado."
+      "description": "Despacho programado (BD SIE): relaciona camion + conductor + fecha. NUCLEO del flujo logistico. IMPORTANTE: COD_CAMION en esta tabla es el ID de la programacion del despacho, NO el codigo del vehiculo (ese esta en COD_REGISTRO_CAMION). Estados (campo ESTADO): C=Por Cargar, E=En proceso, D=Despachado, X=Anulado. COD_EMPRESA_TRANSPORTE es el NIT de la transportadora.",
+      "relationships": {
+        "camion": {
+          "cardinality": "one",
+          "target.entity": "Camion",
+          "source.fields": [ "COD_REGISTRO_CAMION" ],
+          "target.fields": [ "COD_CAMION" ]
+        },
+        "conductor": {
+          "cardinality": "one",
+          "target.entity": "Conductor",
+          "source.fields": [ "COD_CONDUCTOR" ],
+          "target.fields": [ "COD_CONDUCTOR" ]
+        },
+        "documentos": {
+          "cardinality": "many",
+          "target.entity": "DocumentosDespachados",
+          "source.fields": [ "COD_CAMION" ],
+          "target.fields": [ "COD_CAMION" ]
+        },
+        "detalle": {
+          "cardinality": "many",
+          "target.entity": "DetalleCamionXDia",
+          "source.fields": [ "COD_CAMION" ],
+          "target.fields": [ "COD_CAMION" ]
+        }
+      }
+    },
+
+    "DocumentosDespachados": {
+      "source": {
+        "type": "table",
+        "object": "dbo.DOCUMENTOS_DESPACHADOS"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Remisiones / ordenes de venta asociadas a un despacho programado (BD SIE). SECUENCIAL es el numero de remision con formato IE/TTS-NNNN (transferencia) o IE/RMV-NNNN (venta). COD_CAMION es FK al despacho en CAMION_X_DIA.",
+      "relationships": {
+        "programacion": {
+          "cardinality": "one",
+          "target.entity": "CamionXDia",
+          "source.fields": [ "COD_CAMION" ],
+          "target.fields": [ "COD_CAMION" ]
+        }
+      }
+    },
+
+    "DetalleCamionXDia": {
+      "source": {
+        "type": "table",
+        "object": "dbo.DETALLE_CAMION_X_DIA"
+      },
+      "permissions": [
+        { "role": "anonymous", "actions": [ "read" ] }
+      ],
+      "description": "Items concretos a despachar en un camion programado (BD SIE). Es el 'catalogo de pedido': que producto (ITEM = codigo ERP), en que cantidad (CANTIDAD_PLANIFICADA, en UN_MEDIDA = UND/KG/MT), bajo que remision (SECUENCIAL), hacia que destino (PTO_ENVIO). ITEM_EQUIVALENTE es el codigo equivalente en otra compania. Los datos originales vienen del ERP Siesa.",
+      "relationships": {
+        "programacion": {
+          "cardinality": "one",
+          "target.entity": "CamionXDia",
+          "source.fields": [ "COD_CAMION" ],
+          "target.fields": [ "COD_CAMION" ]
+        }
+      }
     }
   }
 }
