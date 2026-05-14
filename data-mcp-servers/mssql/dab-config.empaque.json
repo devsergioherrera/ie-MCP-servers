@@ -1,0 +1,26 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/latest/download/dab.draft.schema.json",
+  "data-source": {
+    "database-type": "mssql",
+    "connection-string": "@env('MSSQL_EMPAQUE_CONN')",
+    "options": {
+      "set-session-context": false
+    }
+  },
+  "entities": {
+    "veb": {
+      "source": {
+        "type": "view",
+        "object": "dbo.vw_EtiquetasBI",
+        "key-fields": [ "ID_ETIQUETA" ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [ "read" ]
+        }
+      ],
+      "description": "Vista BI normalizada de etiquetas (BD EMPAQUE(PR)). Unifica las tres tablas separadas ETIQUETA, ETIQUETA_LINER y ETIQUETA_ROLLO (sin herencia entre ellas). Calcula unidades por unidad ERP de forma centralizada. Es la fuente oficial para metricas de efectividad de alistamiento y despacho. Reemplazar key-fields si el PK real de la vista no es ID_ETIQUETA."
+    }
+  }
+}

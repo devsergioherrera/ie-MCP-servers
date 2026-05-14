@@ -6,7 +6,8 @@ services:
     container_name: mcp-mssql
     restart: unless-stopped
     environment:
-      MSSQL_CONN: ${MSSQL_CONN}
+      MSSQL_SIE_CONN: ${MSSQL_SIE_CONN}
+      MSSQL_EMPAQUE_CONN: ${MSSQL_EMPAQUE_CONN}
     ports:
       # Solo loopback del host: Nginx (nativo en linux.ie) lo alcanza por 127.0.0.1
       - "127.0.0.1:5001:5000"
