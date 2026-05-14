@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# =============================================================
+# Hook post-commit: Crea tarea en OpenProject por cada commit
+# =============================================================
+# Requisito: variable de entorno OPENPROJECT_API_KEY
+#   PowerShell:  [Environment]::SetEnvironmentVariable("OPENPROJECT_API_KEY","TU_KEY","User")
+#   Bash:        export OPENPROJECT_API_KEY="TU_KEY"
+# =============================================================
+
+OPENPROJECT_URL="http://proyectos.sistemas.ie:8080"
+
+# --- Leer configuracion del repo ---
+CONF_FILE="$(git rev-parse --show-toplevel)/.openproject.conf"
+
+if [ ! -f "$CONF_FILE" ]; then
+  echo "⚠️  No se encontro .openproject.conf — saltando hook OpenProject"
+  exit 0
+fi
+
+PROJECT_ID=$(grep -E "^PROJECT_ID=" "$CONF_FILE" | cut -d= -f2 | tr -d ' ')
+TYPE_ID=$(grep -E "^TYPE_ID=" "$CONF_FILE" | cut -d= -f2 | tr -d ' ')
+
+if [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" = "0" ]; then
+  echo "⚠️  PROJECT_ID no configurado en .openproject.conf — saltando hook"
+  exit 0
+fi
+
+# --- Validar API key ---
+if [ -z "$OPENPROJECT_API_KEY" ]; then
+  echo "⚠️  Falta OPENPROJECT_API_KEY — saltando hook OpenProject"
+  exit 0
+fi
+
+# --- Datos del commit ---
+COMMIT_MSG=$(git log -1 --pretty=%s)
+COMMIT_HASH=$(git log -1 --format=%H)
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "unknown")
+HOY=$(date +%F)
+
+# --- Crear tarea en OpenProject ---
+PAYLOAD=$(cat <<EOF
+{
+  "subject": "$COMMIT_MSG",
+  "startDate": "$HOY",
+  "dueDate": "$HOY",
+  "description": {
+    "format": "html",
+    "html": "<p><b>Commit:</b> <code>$COMMIT_HASH</code><br><b>Rama:</b> <code>$BRANCH</code></p>"
+  },
+  "_links": {
+    "project": { "href": "/api/v3/projects/$PROJECT_ID" },
+    "type": { "href": "/api/v3/types/$TYPE_ID" }
+  }
+}
+EOF
+)
+
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+  -u "apikey:$OPENPROJECT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "$PAYLOAD" \
+  "$OPENPROJECT_URL/api/v3/work_packages")
+
+if [ "$RESPONSE" = "201" ]; then
+  echo "✅ Tarea creada en OpenProject (proyecto $PROJECT_ID)"
+else
+  echo "⚠️  OpenProject respondio HTTP $RESPONSE — revisar configuracion"
+fi
+
+exit 0
