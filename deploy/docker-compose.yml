@@ -1,0 +1,50 @@
+name: ie-mcp
+
+services:
+  mcp-mssql:
+    build: ../data-mcp-servers/mssql
+    container_name: mcp-mssql
+    restart: unless-stopped
+    environment:
+      MSSQL_CONN: ${MSSQL_CONN}
+    ports:
+      # Solo loopback del host: Nginx (nativo en linux.ie) lo alcanza por 127.0.0.1
+      - "127.0.0.1:5001:5000"
+    networks: [mcp_net]
+
+  mcp-ie-docs:
+    build: ../docs-mcp-servers/ie-docs
+    container_name: mcp-ie-docs
+    restart: unless-stopped
+    volumes:
+      - ../docs:/docs:rw          # rw: el MCP puede editar markdowns
+    ports:
+      - "127.0.0.1:5004:8000"
+    networks: [mcp_net]
+
+  # ============================================================
+  # Scaffolding listo, descomentar cuando se definan entidades
+  # ============================================================
+  # mcp-mysql-glpi:
+  #   build: ../data-mcp-servers/mysql-glpi
+  #   container_name: mcp-mysql-glpi
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_GLPI_CONN: ${MYSQL_GLPI_CONN}
+  #   ports:
+  #     - "127.0.0.1:5002:5000"
+  #   networks: [mcp_net]
+  #
+  # mcp-pg-op:
+  #   build: ../data-mcp-servers/postgres-openproject
+  #   container_name: mcp-pg-op
+  #   restart: unless-stopped
+  #   environment:
+  #     PG_OPENPROJECT_CONN: ${PG_OPENPROJECT_CONN}
+  #   ports:
+  #     - "127.0.0.1:5003:5000"
+  #   networks: [mcp_net]
+
+networks:
+  mcp_net:
+    name: mcp_net

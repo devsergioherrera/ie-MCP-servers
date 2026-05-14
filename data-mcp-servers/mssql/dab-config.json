@@ -1,0 +1,68 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/latest/download/dab.draft.schema.json",
+  "data-source": {
+    "database-type": "mssql",
+    "connection-string": "@env('MSSQL_CONN')",
+    "options": {
+      "set-session-context": false
+    }
+  },
+  "runtime": {
+    "host": {
+      "mode": "production",
+      "cors": {
+        "origins": [],
+        "allow-credentials": false
+      }
+    },
+    "rest": {
+      "enabled": false
+    },
+    "graphql": {
+      "enabled": false
+    },
+    "mcp": {
+      "enabled": true,
+      "path": "/mcp",
+      "dml-tools": {
+        "describe-entities": true,
+        "read-records": true,
+        "aggregate-records": true,
+        "create-record": false,
+        "update-record": false,
+        "delete-record": false,
+        "execute-entity": false
+      },
+      "description": "MCP de solo lectura sobre SQL Server de produccion de Integral de Empaques. Cubre logistica (BD SIE) y empaque (BD EMPAQUE(PR)). Las entidades expuestas son: CamionXDia (programacion de despachos) y veb (vista BI de etiquetas)."
+    }
+  },
+  "entities": {
+    "CamionXDia": {
+      "source": {
+        "type": "table",
+        "object": "SIE.dbo.CAMION_X_DIA"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [ "read" ]
+        }
+      ],
+      "description": "Despacho programado: relaciona camion + conductor + fecha. Nucleo del flujo logistico. IMPORTANTE: COD_CAMION en esta tabla es el ID de la programacion del despacho, NO el codigo del vehiculo (ese esta en COD_REGISTRO_CAMION). Estados (campo ESTADO): C=Por Cargar, E=En proceso, D=Despachado, X=Anulado."
+    },
+    "veb": {
+      "source": {
+        "type": "view",
+        "object": "[EMPAQUE(PR)].dbo.vw_EtiquetasBI",
+        "key-fields": [ "ID_ETIQUETA" ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [ "read" ]
+        }
+      ],
+      "description": "Vista BI normalizada de etiquetas. Unifica las tres tablas separadas ETIQUETA, ETIQUETA_LINER y ETIQUETA_ROLLO (sin herencia entre ellas). Calcula unidades por unidad ERP de forma centralizada. Es la fuente oficial para metricas de efectividad de alistamiento y despacho. Reemplazar key-fields si el PK real de la vista no es ID_ETIQUETA."
+    }
+  }
+}

@@ -1,1 +1,30 @@
-#  Configure yourself
+# =====================================================================
+# IE-MCP-Servers — .gitignore
+# =====================================================================
+
+# Secretos / variables de entorno
+deploy/.env
+.env
+*.env.local
+
+# Backups generados por el MCP de docs (write_doc)
+docs/*.md.bak
+
+# Caches Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Build artifacts
+*.log
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code local settings
+.claude/
