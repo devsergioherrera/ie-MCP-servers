@@ -12,7 +12,7 @@
       "source": {
         "type": "view",
         "object": "dbo.vw_EtiquetasBI",
-        "key-fields": [ "ID_ETIQUETA" ]
+        "key-fields": [ "Etiqueta" ]
       },
       "permissions": [
         {
@@ -20,7 +20,7 @@
           "actions": [ "read" ]
         }
       ],
-      "description": "Vista BI normalizada de etiquetas (BD EMPAQUE(PR)). Unifica las tres tablas separadas ETIQUETA, ETIQUETA_LINER y ETIQUETA_ROLLO (sin herencia entre ellas). Calcula unidades por unidad ERP de forma centralizada. Es la fuente oficial para metricas de efectividad de alistamiento y despacho. Reemplazar key-fields si el PK real de la vista no es ID_ETIQUETA."
+      "description": "Vista BI normalizada de etiquetas (BD EMPAQUE(PR)). Unifica las tres tablas ETIQUETA, ETIQUETA_LINER y ETIQUETA_ROLLO (sin herencia) y normaliza unidades por ERP. Columnas: Etiqueta (PK, codigo de barras unico), Item (codigo ERP del producto), Descripcion, UnidadInventario, Linea, Cantidad, PesoNeto, PesoBruto, Metros, EstadoEtiqueta, TipoEtiquetado, Desde (origen del registro), Valor (unidades normalizadas para BI)."
     }
   }
 }

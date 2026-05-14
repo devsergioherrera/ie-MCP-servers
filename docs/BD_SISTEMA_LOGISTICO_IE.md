@@ -551,6 +551,37 @@ Un **formato de área** es una plantilla que describe cómo deben ser los códig
 
 ---
 
+## 🔎 Vistas BI
+
+### `vw_EtiquetasBI` (BD `EMPAQUE(PR)`)
+
+**Descripción**: Vista que **unifica las tres tablas separadas de etiquetas** (`ETIQUETA`, `ETIQUETA_LINER`, `ETIQUETA_ROLLO` — que NO tienen herencia entre sí) en una sola superficie consultable, con unidades ya normalizadas por unidad ERP.
+
+**Propósito**: Es la **fuente oficial para BI y métricas** de efectividad de alistamiento y despacho. Cualquier consulta analítica sobre etiquetas debe leer de aquí, no de las tres tablas crudas.
+
+| Columna             | Tipo       | Descripción                                                         |
+|---------------------|------------|---------------------------------------------------------------------|
+| `Etiqueta`          | NCHAR (PK) | Código de barras único de la etiqueta (paca / rollo / liner)        |
+| `Item`              | INT        | Código ERP del producto                                             |
+| `Descripcion`       | NVARCHAR   | Nombre del producto                                                 |
+| `UnidadInventario`  | VARCHAR    | Unidad de inventario en el ERP (KG, UN, ML, etc.)                   |
+| `Linea`             | NVARCHAR   | Línea de producción que generó la etiqueta                          |
+| `Cantidad`          | DECIMAL    | Cantidad en unidades del producto                                   |
+| `PesoNeto`          | DECIMAL    | Peso neto en kg                                                     |
+| `PesoBruto`         | DECIMAL    | Peso bruto en kg                                                    |
+| `Metros`            | DECIMAL    | Longitud en metros (aplica a rollos / liners)                       |
+| `EstadoEtiqueta`    | VARCHAR    | Estado actual de la etiqueta                                        |
+| `TipoEtiquetado`    | VARCHAR    | Origen: `ETIQUETA` / `ETIQUETA_LINER` / `ETIQUETA_ROLLO`             |
+| `Desde`             | VARCHAR    | Sistema o módulo que generó el registro                              |
+| `Valor`             | DECIMAL    | **Cantidad normalizada para BI** según la `UnidadInventario` del ERP |
+
+**Reglas clave**:
+- La columna `Valor` es la única que debe usarse para sumar/agregar en BI — ya está normalizada por unidad ERP.
+- `Etiqueta` es única en toda la vista (PK lógica), aunque internamente provenga de tres tablas distintas.
+- La vista está expuesta vía MCP (servidor `mcp-mssql`, entidad `veb`).
+
+---
+
 ## 📌 Notas Importantes
 
 - Todas las tablas de `SIE` usan el prefijo `COD_` para claves primarias
