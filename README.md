@@ -12,7 +12,7 @@
 
 | Capa                    | Tecnologia                                                              |
 | ----------------------- | ----------------------------------------------------------------------- |
-| **MCP de BDs**          | Microsoft Data API Builder (DAB) v1.7+ — `data-api-builder:1.7-latest`  |
+| **MCP de BDs**          | Microsoft Data API Builder (DAB) v1.7+ — `data-api-builder:1.7.93`  |
 | **MCP de docs**         | Python 3.12 + `mcp` SDK oficial (FastMCP, streamable-http)              |
 | **Orquestacion**        | Docker Compose                                                          |
 | **Reverse proxy**       | Nginx **nativo en linux.ie** (no contenerizado)                         |

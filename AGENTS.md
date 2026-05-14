@@ -6,7 +6,7 @@
 - **Tipo**: Monorepo de MCP Servers (BDs y docs) desplegado con Docker Compose
 - **Empresa**: Integral de Empaques S.A.S.
 - **Stack**:
-  - **MCP de BDs**: Microsoft Data API Builder (DAB) v1.7+ — `mcr.microsoft.com/azure-databases/data-api-builder:1.7-latest`. Cubre SQL Server, MySQL y PostgreSQL con la misma tecnologia.
+  - **MCP de BDs**: Microsoft Data API Builder (DAB) v1.7+ — `mcr.microsoft.com/azure-databases/data-api-builder:1.7.93`. Cubre SQL Server, MySQL y PostgreSQL con la misma tecnologia.
   - **MCP de docs**: Python 3.12 + `mcp` SDK oficial (FastMCP) sobre transporte streamable-http.
   - **Despliegue**: linux.ie (Ubuntu 24.04) con Docker Compose. Nginx **instalado nativo en el host** (no contenerizado), siguiendo el patron `conf.d/<servicio>.ie.conf`.
 
