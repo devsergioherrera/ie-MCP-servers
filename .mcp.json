@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ie-mssql": {
+      "type": "http",
+      "url": "http://mcp.ie/mssql/mcp"
+    },
+    "ie-docs": {
+      "type": "http",
+      "url": "http://mcp.ie/docs/mcp"
+    }
+  }
+}

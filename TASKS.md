@@ -19,7 +19,12 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
   GRANT SELECT ON dbo.vw_EtiquetasBI TO mcp_reader;
   ```
 - [ ] **#3 TLS en Nginx** — habilitar HTTPS para `mcp.ie`. Decidir: cert interno IE o Let's Encrypt (requiere DNS publico). Por ahora solo escucha en `:80`.
-- [ ] **#4 Validar PK real de `vw_EtiquetasBI`** — DAB exige `key-fields` explicito para vistas. Hoy esta seteado en `ID_ETIQUETA` como placeholder. Si la PK real es otra, ajustar `data-mcp-servers/mssql/dab-config.json`.
+- [x] **#4 Validar PK real de `vw_EtiquetasBI`** — corregido a `Etiqueta` (NCHAR). Pero ver #15.
+- [ ] **#15 PK de `vw_EtiquetasBI` no es estrictamente unica** — los registros con `Desde='ETIQUETA_LINER'` pueden tener `Etiqueta` como cadena de espacios (NCHAR sin trimear y sin codigo). Eso rompe la garantia de unicidad que asume DAB con `key-fields: ["Etiqueta"]`: si hay >1 LINER sin codigo, la paginacion por cursor puede colisionar. Opciones:
+  - (a) Filtrar la vista para excluir filas con `Etiqueta` vacia/null.
+  - (b) Cambiar a PK compuesta `["Etiqueta", "Desde"]` (requiere que el par sea unico — validar).
+  - (c) Generar un `Id` sinteticco en la vista (`ROW_NUMBER()` no sirve por estabilidad — mejor un hash determinista o un identity en una tabla materializada).
+  Decidir con el usuario antes de modificar la vista en produccion.
 
 ## Funcional — MCP de BDs (segunda iteracion)
 
