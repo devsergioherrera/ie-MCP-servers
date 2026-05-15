@@ -1,9 +1,9 @@
 name: ie-mcp
 
 services:
-  mcp-mssql:
+  mcp-mssql-main:
     build: ../data-mcp-servers/mssql
-    container_name: mcp-mssql
+    container_name: mcp-mssql-main
     restart: unless-stopped
     environment:
       MSSQL_SIE_CONN: ${MSSQL_SIE_CONN}

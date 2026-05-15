@@ -18,9 +18,9 @@ The user wants to make a new database object (table, view, or whole DB) availabl
 
 | Engine | Target container | Config file | Notes |
 |---|---|---|---|
-| SQL Server | `mcp-mssql` | `data-mcp-servers/mssql/dab-config.<dbname>.json` referenced from `dab-config.json` via `data-source-files` | One config file per database. The principal `dab-config.json` is for BD `SIE`. |
-| MySQL | `mcp-mysql-glpi` | `data-mcp-servers/mysql-glpi/dab-config.json` | Today only GLPI. Add another container if a new MySQL server appears. |
-| PostgreSQL | `mcp-pg-op` | `data-mcp-servers/postgres-openproject/dab-config.json` | Today only OpenProject. Add another container if a new PG server appears. |
+| SQL Server | `mcp-mssql-<dbname>` | `data-mcp-servers/mssql-<dbname>/dab-config.json` | **Un contenedor por base de datos.** NUNCA usar `data-source-files` — las operaciones de escritura fallan con `KeyNotFoundException` sobre entidades en data sources secundarios (bug DAB 1.7.93, probablemente no corregido en 2.x). Ejemplos existentes: `mcp-mssql-main` (SIE+EMPAQUE), `mcp-mssql-monitor` (IE_MONITOR). |
+| MySQL | `mcp-mysql-<purpose>` | `data-mcp-servers/mysql-<purpose>/dab-config.json` | Un contenedor por BD. Hoy solo GLPI (`mcp-mysql-glpi`). |
+| PostgreSQL | `mcp-pg-<purpose>` | `data-mcp-servers/postgres-<purpose>/dab-config.json` | Un contenedor por BD. Hoy solo OpenProject (`mcp-pg-op`). |
 
 ## Required inputs (ask the user upfront)
 
@@ -46,14 +46,16 @@ Each new server/DB gets its own env var with a descriptive name. Convention: `<E
 
 ## Steps
 
-### 1. Identify the target config file
+### 1. Crear o identificar la carpeta del contenedor
 
-- SQL Server: if the database is **new** for this project, create `data-mcp-servers/mssql/dab-config.<dbname-lower>.json` and add the filename to `data-source-files[]` in the principal `dab-config.json`. If the database is **already there**, edit the existing file.
-- MySQL / PostgreSQL: edit `data-mcp-servers/<engine>-<purpose>/dab-config.json` directly.
+- SQL Server: cada base de datos tiene su propia carpeta `data-mcp-servers/mssql-<dbname-lower>/` con su propio `Dockerfile` y `dab-config.json`. **NUNCA** agregar la BD a un contenedor existente vía `data-source-files` — ese patrón rompe las operaciones de escritura (bug confirmado en DAB 1.7.93).
+  - Nueva BD → crear `data-mcp-servers/mssql-<dbname-lower>/` desde cero.
+  - BD ya existente → editar `data-mcp-servers/mssql-<dbname-lower>/dab-config.json` directamente.
+- MySQL / PostgreSQL: edit `data-mcp-servers/<engine>-<purpose>/dab-config.json` directly. Si la BD es en un servidor diferente al ya existente, crear nueva carpeta de contenedor también.
 
-### 2. Create the secondary config (mssql multi-db only) or update the existing one
+### 2. Crear o actualizar el dab-config.json del contenedor
 
-Skeleton for a brand-new `dab-config.<dbname-lower>.json` (mssql):
+Skeleton para un contenedor nuevo `data-mcp-servers/mssql-<dbname-lower>/dab-config.json` (mssql):
 
 ```json
 {
@@ -191,8 +193,10 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO mcp_reader;
 ### 5. Update infra files
 
 - **`deploy/.env`** and **`deploy/.env.example`**: add a new env var with the connection string. `.env` gets the real value, `.env.example` gets the placeholder template.
-- **`deploy/docker-compose.yml`**: add the env var to the corresponding service's `environment:` block. The container won't see it otherwise.
-- **`data-mcp-servers/<engine>/Dockerfile`** (CRITICAL when creating a new dab-config.*.json): add a `COPY dab-config.<dbname-lower>.json /App/dab-config.<dbname-lower>.json` line. Without this, DAB cannot find the file at runtime and the new entities silently don't load. This is the most common pitfall. Editing only the config file and the `data-source-files` array is NOT enough — the image must be rebuilt with `--build` and the file must be present in the build context.
+- **`deploy/docker-compose.yml`**: add a **new service block** for the new container. Asignar el siguiente puerto disponible en loopback (5001=mssql-main, 5002=mysql-glpi planned, 5003=pg-op planned, 5004=ie-docs, 5005=mssql-monitor). Incluir el env var en el `environment:` block.
+- **`data-mcp-servers/mssql-<dbname-lower>/Dockerfile`** (CRÍTICO para SQL Server): el Dockerfile solo necesita copiar un archivo — `COPY dab-config.json /App/dab-config.json`. Un contenedor = un dab-config.json. Sin `data-source-files`, sin múltiples COPY.
+- **`deploy/nginx/mcp.ie.conf`**: agregar un bloque `location /<dbname>/` que apunte al nuevo puerto del contenedor.
+- **`.mcp.json`** (proyecto) y **`~/.claude.json`** (global): agregar el nuevo servidor con la URL `http://mcp.ie/<dbname>/mcp`.
 
 ### 6. Append to CHANGELOG.md
 
@@ -237,6 +241,7 @@ Date format: ISO 8601 (`YYYY-MM-DD`), use **today's date in the user's timezone*
 ### Never
 - Commit `.env` to the repo (it is gitignored — verify before commit).
 - **Embed the real password in the generated `grants-*.sql` script** — the script is committed to the repo. Use a placeholder like `<REEMPLAZAR_POR_PASSWORD_REAL>` and explicitly tell the user to substitute it locally before running. The real password only lives in `deploy/.env` (gitignored).
-- Suggest INSERT/UPDATE/DELETE grants — this project is strictly read-only via MCP.
+- **Usar `data-source-files`** para agregar una BD a un contenedor existente. Bug confirmado en DAB 1.7.93: `create_record`/`update_record`/`delete_record` fallan con `KeyNotFoundException` sobre entidades de data sources secundarios. Siempre crear un contenedor nuevo.
+- Suggest INSERT/UPDATE/DELETE grants — this project is strictly read-only via MCP (excepto BDs explícitamente habilitadas para escritura como IE_MONITOR).
 - Auto-execute the SQL grants — those run on the SQL Server, not from this agent.
 - Skip the CHANGELOG entry.

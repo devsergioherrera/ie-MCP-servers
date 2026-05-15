@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ie-mssql": {
+    "ie-mssql-main": {
       "type": "http",
       "url": "http://mcp.ie/mssql/mcp"
     },
