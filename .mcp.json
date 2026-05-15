@@ -4,6 +4,10 @@
       "type": "http",
       "url": "http://mcp.ie/mssql/mcp"
     },
+    "ie-mssql-monitor": {
+      "type": "http",
+      "url": "http://mcp.ie/monitor/mcp"
+    },
     "ie-docs": {
       "type": "http",
       "url": "http://mcp.ie/docs/mcp"

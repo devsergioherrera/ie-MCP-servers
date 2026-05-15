@@ -8,7 +8,6 @@ services:
     environment:
       MSSQL_SIE_CONN: ${MSSQL_SIE_CONN}
       MSSQL_EMPAQUE_CONN: ${MSSQL_EMPAQUE_CONN}
-      MSSQL_MONITOR_CONN: ${MSSQL_MONITOR_CONN}
     ports:
       # Solo loopback del host: Nginx (nativo en linux.ie) lo alcanza por 127.0.0.1
       - "127.0.0.1:5001:5000"
@@ -21,6 +20,21 @@ services:
         max-file: "5"
     # No healthcheck declarado: la imagen DAB es chiseled (sin shell ni curl).
     # restart: unless-stopped basta para reciclar si crashea.
+
+  mcp-mssql-monitor:
+    build: ../data-mcp-servers/mssql-monitor
+    container_name: mcp-mssql-monitor
+    restart: unless-stopped
+    environment:
+      MSSQL_MONITOR_CONN: ${MSSQL_MONITOR_CONN}
+    ports:
+      - "127.0.0.1:5005:5000"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   mcp-ie-docs:
     build: ../docs-mcp-servers/ie-docs

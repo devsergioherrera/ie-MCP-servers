@@ -7,6 +7,31 @@
       "set-session-context": false
     }
   },
+  "runtime": {
+    "host": {
+      "mode": "production",
+      "cors": {
+        "origins": [],
+        "allow-credentials": false
+      }
+    },
+    "rest": { "enabled": false },
+    "graphql": { "enabled": false },
+    "mcp": {
+      "enabled": true,
+      "path": "/mcp",
+      "dml-tools": {
+        "describe-entities": true,
+        "read-records": true,
+        "aggregate-records": true,
+        "create-record": true,
+        "update-record": true,
+        "delete-record": true,
+        "execute-entity": false
+      },
+      "description": "MCP de lectura y escritura sobre la BD IE_MONITOR (servidor 192.168.50.86). Cubre biometria, configuracion y estado del sistema de monitoreo de IE. Todas las entidades aceptan create/update/delete via mcp_writer."
+    }
+  },
   "entities": {
     "Biometricos": {
       "source": {
