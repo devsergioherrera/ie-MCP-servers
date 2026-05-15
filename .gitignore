@@ -10,6 +10,11 @@ deploy/.env
 # Backups generados por el MCP de docs (write_doc)
 docs/*.md.bak
 
+# Logs runtime de los contenedores (volumen montado)
+logs/
+*.jsonl
+*.jsonl.*
+
 # Caches Python
 __pycache__/
 *.py[cod]

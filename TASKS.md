@@ -6,10 +6,7 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
 
 ## Seguridad
 
-- [ ] **#1 Auth en Nginx** — Hoy todo es LAN sin autenticacion. Definir mecanismo: bearer token estatico (mas simple) o JWT validado via `auth_request` (mas robusto). Cuando se decida:
-  - Agregar bloque `auth_request /_auth;` en `deploy/nginx/mcp.ie.conf`.
-  - Crear endpoint `/_auth` (Lua o subrequest a un mini-servicio) que valide `Authorization: Bearer <token>`.
-  - Rotar token via variable de entorno del host.
+- [ ] **#1 Auth (futuro: IdP central)** — Hoy todo es LAN sin autenticacion. La trazabilidad existente (remote_addr + user_agent del access log de Nginx + request_id) sirve para saber "desde donde". Cuando se quiera saber "quien" con identidad federada, NO improvisar bearer estatico — montar un IdP central (probablemente Keycloak federado contra el AD de IE) en un repo separado `ie-auth/` y reemplazar este bloque por validacion JWT via `auth_request` en Nginx y `runtime.host.authentication` en DAB. Diseno deliberadamente diferido para no atar este proyecto a un mecanismo que va a cambiar.
 - [ ] **#2 Ejecutar GRANTs en SQL Server** (manual como `sa`) — script consolidado e idempotente en `data-mcp-servers/mssql/grants.sql`. Cubre las 16 entidades del sistema logistico (5 SIE + 11 EMPAQUE(PR)). El script crea el USER si falta y otorga SELECT a las tablas/vistas listadas. Incluye query de verificacion al final.
 - [ ] **#3 TLS en Nginx** — habilitar HTTPS para `mcp.ie`. Decidir: cert interno IE o Let's Encrypt (requiere DNS publico). Por ahora solo escucha en `:80`.
 - [x] **#4 Validar PK real de `vw_EtiquetasBI`** — corregido a `Etiqueta` (NCHAR). Pero ver #15.
@@ -42,8 +39,10 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
 
 ## Observabilidad
 
-- [ ] **#10 OpenTelemetry de DAB** — conectar exporter a colector local (Jaeger/Tempo en linux.ie) si se decide trazar.
-- [ ] **#11 Healthchecks en docker-compose** — anadir bloque `healthcheck:` a los servicios (curl a `/health`).
+- [x] **Trazabilidad basica** — `mcp-ie-docs` emite logs JSON estructurados a `logs/ie-docs.jsonl` (rotacion automatica 10MB x5). Nginx emite access log JSON a `/var/log/nginx/mcp.ie.access.log` con remote_addr, user_agent, path, status, request_time, request_id. DAB persiste via Docker logging driver json-file (10MB x5).
+- [ ] **#10 OpenTelemetry de DAB** — conectar exporter a colector local (Jaeger/Tempo en linux.ie) si se decide trazar. Util cuando haya >2 backends y se necesite correlacion end-to-end.
+- [ ] **#16 Log shipping a un sink central** — opcional, si en el futuro se quiere consultar logs desde un lugar (no entrar a linux.ie). Opciones: Loki + Grafana, Elastic, Seq.
+- [x] **#11 Healthchecks en docker-compose** — `mcp-ie-docs` tiene healthcheck via socket TCP. `mcp-mssql` sin healthcheck (imagen DAB chiseled sin shell); confiamos en `restart: unless-stopped`.
 
 ## Operacion
 

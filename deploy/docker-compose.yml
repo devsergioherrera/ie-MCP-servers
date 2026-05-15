@@ -12,6 +12,14 @@ services:
       # Solo loopback del host: Nginx (nativo en linux.ie) lo alcanza por 127.0.0.1
       - "127.0.0.1:5001:5000"
     networks: [mcp_net]
+    # DAB persiste logs en stdout; Docker los retiene con json-file driver
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    # No healthcheck declarado: la imagen DAB es chiseled (sin shell ni curl).
+    # restart: unless-stopped basta para reciclar si crashea.
 
   mcp-ie-docs:
     build: ../docs-mcp-servers/ie-docs
@@ -19,9 +27,25 @@ services:
     restart: unless-stopped
     volumes:
       - ../docs:/docs:rw          # rw: el MCP puede editar markdowns
+      - ../logs:/logs:rw          # logs estructurados JSON persistidos
     ports:
       - "127.0.0.1:5004:8000"
     networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import socket,sys; s=socket.socket(); s.settimeout(3); s.connect(('127.0.0.1', 8000)); s.close()"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
   # ============================================================
   # Scaffolding listo, descomentar cuando se definan entidades
@@ -29,22 +53,12 @@ services:
   # mcp-mysql-glpi:
   #   build: ../data-mcp-servers/mysql-glpi
   #   container_name: mcp-mysql-glpi
-  #   restart: unless-stopped
-  #   environment:
-  #     MYSQL_GLPI_CONN: ${MYSQL_GLPI_CONN}
-  #   ports:
-  #     - "127.0.0.1:5002:5000"
-  #   networks: [mcp_net]
+  #   ...
   #
   # mcp-pg-op:
   #   build: ../data-mcp-servers/postgres-openproject
   #   container_name: mcp-pg-op
-  #   restart: unless-stopped
-  #   environment:
-  #     PG_OPENPROJECT_CONN: ${PG_OPENPROJECT_CONN}
-  #   ports:
-  #     - "127.0.0.1:5003:5000"
-  #   networks: [mcp_net]
+  #   ...
 
 networks:
   mcp_net:
