@@ -31,5 +31,5 @@ venv/
 .idea/
 *.swp
 
-# Claude Code local settings
-.claude/
+# Claude Code local settings (mantener .claude/skills/ y .claude/commands/ en el repo)
+.claude/settings.local.json

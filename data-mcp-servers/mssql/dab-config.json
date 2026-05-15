@@ -8,7 +8,8 @@
     }
   },
   "data-source-files": [
-    "dab-config.empaque.json"
+    "dab-config.empaque.json",
+    "dab-config.monitor.json"
   ],
   "runtime": {
     "host": {
