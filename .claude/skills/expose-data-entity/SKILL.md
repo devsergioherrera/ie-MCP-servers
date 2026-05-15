@@ -223,6 +223,12 @@ Date format: ISO 8601 (`YYYY-MM-DD`), use **today's date in the user's timezone*
 - Write descriptions in the entity blocks that explain business meaning, not just column lists.
 - For views: require `key-fields` to be set (or ask the user before deploying).
 
+### Read-only vs read-write
+- The runtime `dml-tools` toggles are **global to the container** — once you enable `create-record`/`update-record`/`delete-record`, they appear in `tools/list` for every entity. You cannot restrict tool visibility per data-source-file.
+- The **per-entity defense** is the `permissions.actions` array. Entities with `["read"]` reject writes with 403 at runtime even if the tool exists. Use this as the primary guardrail.
+- Different SQL users per scope: if a BD allows writes, the connection string for that data-source-file must use a SQL user with INSERT/UPDATE/DELETE privileges. Read-only BDs continue using a strictly read-only SQL user. Naming convention: `mcp_reader` for read-only, `mcp_writer` for read+write. One LOGIN per role per server. Use distinct passwords per role (do not reuse the reader password for the writer).
+- When enabling writes, prefer `db_datareader + db_datawriter` if scope = whole DB, or explicit `GRANT INSERT, UPDATE, DELETE ON dbo.<Table>` if whitelisting.
+
 ### Ask first
 - Before granting `db_datareader` (broad). Confirm the user really wants full-DB read access vs whitelist.
 - Before reusing an existing password across servers — recommend a fresh one.

@@ -7,6 +7,7 @@ Para cambios de código/infra menores, ver `git log`.
 
 ## Changes
 
+- 2026-05-15 — Habilitada escritura (INSERT/UPDATE/DELETE) sobre las 5 entidades de `IE_MONITOR`. Nuevo LOGIN `mcp_writer` con `db_datareader + db_datawriter` sobre IE_MONITOR; `MSSQL_MONITOR_CONN` ahora usa este user. Tools `create_record`, `update_record`, `delete_record` habilitadas globalmente en DAB runtime. SIE y EMPAQUE(PR) siguen read-only por `permissions=["read"]` a nivel entidad (defense-in-depth: la tool aparece en tools/list pero DAB devuelve 403 al intentar escribir).
 - 2026-05-15 — Expuestas 5 tablas de la BD `IE_MONITOR` del servidor `192.168.50.86` via MCP: `BIOMETRICOS`, `BIOMETRICOS_DESTINATARIOS`, `MONITOREO_ALERTAS_LOG`, `MONITOREO_CONFIG`, `MONITOREO_ESTADO_CHECKER`. Acceso read-only con `mcp_reader` + `db_datareader`. Descripciones marcadas como TODO — pendiente refinar con el usuario.
 - 2026-05-15 — Skill `expose-data-entity` creada en `.claude/skills/` (proyecto). Documenta el flujo para agregar BDs/tablas/vistas a los MCP de mssql/mysql/postgres con generacion de GRANT scripts, actualizacion de .env, docker-compose y CHANGELOG. Refuerza que las passwords reales NO van en los .sql commiteados (solo en `.env`).
 - 2026-05-15 — Trazabilidad activada: logs JSON estructurados en mcp-ie-docs (`logs/ie-docs.jsonl`) y Nginx access log JSON en `/var/log/nginx/mcp.ie.access.log`. Sin auth (LAN-trust).

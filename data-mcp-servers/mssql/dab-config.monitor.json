@@ -14,9 +14,9 @@
         "object": "dbo.BIOMETRICOS"
       },
       "permissions": [
-        { "role": "anonymous", "actions": [ "read" ] }
+        { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: registros de marcaciones / huellas / lectores biometricos (control de asistencia o acceso). BD IE_MONITOR, servidor 192.168.50.86."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: registros de marcaciones / huellas / lectores biometricos (control de asistencia o acceso). BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA (create/update/delete) via mcp_writer."
     },
 
     "BiometricosDestinatarios": {
@@ -25,9 +25,9 @@
         "object": "dbo.BIOMETRICOS_DESTINATARIOS"
       },
       "permissions": [
-        { "role": "anonymous", "actions": [ "read" ] }
+        { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: destinatarios (emails/usuarios) que reciben notificaciones/reportes derivados de BIOMETRICOS. BD IE_MONITOR, servidor 192.168.50.86."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: destinatarios (emails/usuarios) que reciben notificaciones/reportes derivados de BIOMETRICOS. BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA."
     },
 
     "MonitoreoAlertasLog": {
@@ -36,9 +36,9 @@
         "object": "dbo.MONITOREO_ALERTAS_LOG"
       },
       "permissions": [
-        { "role": "anonymous", "actions": [ "read" ] }
+        { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: log historico de alertas disparadas por el sistema de monitoreo (eventos, fechas, severidad, mensaje, estado). BD IE_MONITOR, servidor 192.168.50.86."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: log historico de alertas disparadas por el sistema de monitoreo (eventos, fechas, severidad, mensaje, estado). BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA — los agentes pueden insertar nuevos eventos de alerta."
     },
 
     "MonitoreoConfig": {
@@ -47,9 +47,9 @@
         "object": "dbo.MONITOREO_CONFIG"
       },
       "permissions": [
-        { "role": "anonymous", "actions": [ "read" ] }
+        { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: configuracion del sistema de monitoreo: que chequea, umbrales, frecuencia, destinatarios. BD IE_MONITOR, servidor 192.168.50.86."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: configuracion del sistema de monitoreo: que chequea, umbrales, frecuencia, destinatarios. BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA — los agentes pueden ajustar umbrales o agregar checkers."
     },
 
     "MonitoreoEstadoChecker": {
@@ -58,9 +58,9 @@
         "object": "dbo.MONITOREO_ESTADO_CHECKER"
       },
       "permissions": [
-        { "role": "anonymous", "actions": [ "read" ] }
+        { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: estado actual de cada checker del sistema de monitoreo (ultima ejecucion, ultimo resultado, fecha proxima ejecucion). BD IE_MONITOR, servidor 192.168.50.86."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: estado actual de cada checker del sistema de monitoreo (ultima ejecucion, ultimo resultado, fecha proxima ejecucion). BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA — los agentes actualizan el estado tras ejecutar un check."
     }
   }
 }

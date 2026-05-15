@@ -28,12 +28,12 @@
         "describe-entities": true,
         "read-records": true,
         "aggregate-records": true,
-        "create-record": false,
-        "update-record": false,
-        "delete-record": false,
+        "create-record": true,
+        "update-record": true,
+        "delete-record": true,
         "execute-entity": false
       },
-      "description": "MCP de solo lectura sobre SQL Server de produccion de Integral de Empaques. Cubre el sistema logistico completo: BD SIE (programacion de despachos: camiones, conductores, remisiones, items) y BD EMPAQUE(PR) (operacion: etiquetas, alistamiento, kardex, formatos de area, vistas BI). Las relaciones entre entidades de la MISMA base de datos estan declaradas explicitamente; las relaciones cross-database (ej. ALISTAMIENTO.idCamionDia -> CAMION_X_DIA.COD_CAMION) deben resolverse con dos llamadas read_records sucesivas."
+      "description": "MCP sobre SQL Server de produccion de Integral de Empaques. Cubre el sistema logistico (BD SIE y EMPAQUE(PR) en 192.168.50.252) y monitoreo (BD IE_MONITOR en 192.168.50.86). IMPORTANTE: SIE y EMPAQUE(PR) son SOLO LECTURA (entidades con permissions=['read']); cualquier intento de create/update/delete sobre ellas devolvera 403. Solo las 5 entidades de IE_MONITOR (Biometricos, BiometricosDestinatarios, MonitoreoAlertasLog, MonitoreoConfig, MonitoreoEstadoChecker) aceptan escritura. Las relaciones intra-BD estan declaradas; las cross-DB requieren dos read_records sucesivos."
     }
   },
   "entities": {
