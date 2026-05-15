@@ -192,6 +192,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO mcp_reader;
 
 - **`deploy/.env`** and **`deploy/.env.example`**: add a new env var with the connection string. `.env` gets the real value, `.env.example` gets the placeholder template.
 - **`deploy/docker-compose.yml`**: add the env var to the corresponding service's `environment:` block. The container won't see it otherwise.
+- **`data-mcp-servers/<engine>/Dockerfile`** (CRITICAL when creating a new dab-config.*.json): add a `COPY dab-config.<dbname-lower>.json /App/dab-config.<dbname-lower>.json` line. Without this, DAB cannot find the file at runtime and the new entities silently don't load. This is the most common pitfall. Editing only the config file and the `data-source-files` array is NOT enough — the image must be rebuilt with `--build` and the file must be present in the build context.
 
 ### 6. Append to CHANGELOG.md
 
