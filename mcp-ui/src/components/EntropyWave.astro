@@ -1,3 +1,22 @@
+<!--
+  SVG grain filter: feTurbulence → feDisplacementMap
+  Warps each pixel by a random offset (scale=8) giving the sandy/granular edge.
+  The fractalNoise drives organic, dune-like displacement on the blob edges.
+-->
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <filter id="sandy" x="-20%" y="-20%" width="140%" height="140%"
+            color-interpolation-filters="linearRGB">
+      <!-- Grain texture -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.62 0.58"
+                    numOctaves="4" seed="8" stitchTiles="stitch" result="noise"/>
+      <!-- Displace the blob edges by ±8px → sandy, dune-like border -->
+      <feDisplacementMap in="SourceGraphic" in2="noise"
+                         scale="8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
 <div class="entropy-wave">
   <canvas id="entropy-canvas" class="entropy-wave__canvas" aria-hidden="true"></canvas>
 </div>
@@ -10,81 +29,102 @@
 
   var ctx = canvas.getContext("2d");
   var frame = 0;
-  var seed = Math.floor(Math.random() * 10000);
 
-  // Minimal seeded pseudo-noise (value noise via hash)
+  /* ── Smooth value noise (3-D) ── */
   function hash(x, y, z) {
-    var n = Math.sin(x * 127.1 + y * 311.7 + z * 74.3) * 43758.5453;
+    var n = Math.sin(x * 127.1 + y * 311.7 + z * 74.3) * 43758.5453123;
     return n - Math.floor(n);
   }
-  function smoothNoise(x, y, z) {
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function fade(t) { return t * t * (3 - 2 * t); }
+  function noise(x, y, z) {
     var ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
-    var fx = x - ix, fy = y - iy, fz = z - iz;
-    // smoothstep
-    fx = fx * fx * (3 - 2 * fx);
-    fy = fy * fy * (3 - 2 * fy);
-    fz = fz * fz * (3 - 2 * fz);
-    function lerp(a, b, t) { return a + (b - a) * t; }
+    var fx = fade(x - ix), fy = fade(y - iy), fz = fade(z - iz);
     return lerp(
-      lerp(lerp(hash(ix,iy,iz), hash(ix+1,iy,iz), fx), lerp(hash(ix,iy+1,iz), hash(ix+1,iy+1,iz), fx), fy),
-      lerp(lerp(hash(ix,iy,iz+1), hash(ix+1,iy,iz+1), fx), lerp(hash(ix,iy+1,iz+1), hash(ix+1,iy+1,iz+1), fx), fy),
+      lerp(lerp(hash(ix,iy,iz),   hash(ix+1,iy,iz),   fx),
+           lerp(hash(ix,iy+1,iz), hash(ix+1,iy+1,iz), fx), fy),
+      lerp(lerp(hash(ix,iy,iz+1),   hash(ix+1,iy,iz+1),   fx),
+           lerp(hash(ix,iy+1,iz+1), hash(ix+1,iy+1,iz+1), fx), fy),
       fz
     );
   }
 
+  /* ── Blob definitions ──
+     Each blob = soft radial gradient centred at (cx+noise_offset, cy+noise_offset).
+     r_frac = radius as fraction of min(w,h).
+     Colors from IE palette: navy, electric blue, teal, green, deep ocean.
+  */
+  var blobs = [
+    /* Large navy anchor — barely moves */
+    { ox:0.50, oy:0.50, r:0.72, speed:0.18, phase:0.0,
+      c0:"rgba(1,20,128,0.55)",   c1:"rgba(1,20,128,0)" },
+    /* Electric blue — drifts slowly left */
+    { ox:0.38, oy:0.46, r:0.55, speed:0.28, phase:1.4,
+      c0:"rgba(35,155,216,0.50)", c1:"rgba(35,155,216,0)" },
+    /* Teal accent */
+    { ox:0.62, oy:0.54, r:0.48, speed:0.32, phase:2.8,
+      c0:"rgba(2,159,76,0.42)",   c1:"rgba(2,159,76,0)" },
+    /* Mid blue highlight */
+    { ox:0.50, oy:0.44, r:0.40, speed:0.22, phase:4.2,
+      c0:"rgba(20,80,220,0.38)",  c1:"rgba(20,80,220,0)" },
+    /* Green trail */
+    { ox:0.45, oy:0.58, r:0.35, speed:0.36, phase:5.6,
+      c0:"rgba(10,160,100,0.32)", c1:"rgba(10,160,100,0)" },
+    /* Bright specular — small, fast */
+    { ox:0.54, oy:0.48, r:0.22, speed:0.50, phase:0.7,
+      c0:"rgba(80,190,240,0.45)", c1:"rgba(80,190,240,0)" },
+  ];
+
   function resize() {
     var parent = canvas.parentElement;
-    canvas.width  = parent.clientWidth;
-    canvas.height = parent.clientHeight;
+    canvas.width  = parent.clientWidth  || 800;
+    canvas.height = parent.clientHeight || 400;
   }
   resize();
   window.addEventListener("resize", resize);
 
-  function lerpColor(r1,g1,b1,a1, r2,g2,b2,a2, t) {
-    return [
-      r1 + (r2-r1)*t | 0,
-      g1 + (g2-g1)*t | 0,
-      b1 + (b2-b1)*t | 0,
-      a1 + (a2-a1)*t
-    ];
-  }
-
   function draw() {
     var w = canvas.width, h = canvas.height;
+    var cx = w * 0.5, cy = h * 0.5;
+    var minDim = Math.min(w, h);
+    var t = frame * 0.004;
+
+    /* Clear to pure white */
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, w, h);
 
-    var cx = w / 2, cy = h / 2;
-    var baseR = Math.min(w, h) * 0.28;
-    var t = frame * 0.006;
-    var layers = 12;
+    /* Composite: source-over at low alpha → layers build up naturally */
+    ctx.globalCompositeOperation = "source-over";
 
-    for (var layer = 0; layer < layers; layer++) {
-      var mix = layer / (layers - 1);
-      // blue=[1,20,128,140]  light=[35,155,216,120]  green=[2,159,76,120]
-      var c1 = lerpColor(1,20,128,140, 35,155,216,120, mix);
-      var c  = lerpColor(c1[0],c1[1],c1[2],c1[3], 2,159,76,120, mix * 0.8);
-      ctx.strokeStyle = "rgba("+c[0]+","+c[1]+","+c[2]+","+c[3]/255+")";
-      ctx.lineWidth = 1;
+    blobs.forEach(function(b, i) {
+      /* Noise-driven centre offset — each axis uses a different seed slice */
+      var nx = noise(t * b.speed + b.phase,       0.5, i * 0.37);
+      var ny = noise(0.5, t * b.speed + b.phase,  i * 0.37 + 10);
+      /* Move ±18% of minDim */
+      var drift = minDim * 0.18;
+      var bx = cx + (nx - 0.5) * 2 * drift;
+      var by = cy + (ny - 0.5) * 2 * drift;
+
+      /* Radius breathes gently */
+      var breathe = 0.88 + 0.12 * Math.sin(t * b.speed * 2.5 + b.phase);
+      var r = minDim * b.r * breathe;
+
+      var grad = ctx.createRadialGradient(bx, by, 0, bx, by, r);
+      grad.addColorStop(0,   b.c0);
+      grad.addColorStop(0.5, b.c0.replace(/[\d.]+\)$/, "0.15)"));
+      grad.addColorStop(1,   b.c1);
+
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      var step = 0.06, TWO_PI = Math.PI * 2;
-      for (var angle = 0; angle <= TWO_PI + step; angle += step) {
-        var nx = Math.cos(angle) + seed * 0.001;
-        var ny = Math.sin(angle) + seed * 0.002;
-        var nz = t + layer * 0.08;
-        var noiseVal = smoothNoise(nx, ny, nz);
-        var wave = Math.sin(angle * 3 + t * 2 + layer) * 12;
-        var radius = baseR + noiseVal * 120 + wave;
-        var x = cx + Math.cos(angle) * radius;
-        var y = cy + Math.sin(angle) * radius * 0.85;
-        if (angle === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
+      ctx.arc(bx, by, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
     frame++;
     requestAnimationFrame(draw);
   }
+
   requestAnimationFrame(draw);
 })();
 </script>

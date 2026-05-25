@@ -3,9 +3,10 @@
   --color-light-blue: #239bd8;
   --color-green: #029f4c;
   --color-gray: #c0c0c2;
-  --color-text-black: #000000;
+  --color-text-black: #0a0e1a;
   --color-surface: #ffffff;
-  --color-shadow: rgba(10, 20, 40, 0.12);
+  --color-shadow: rgba(10, 20, 40, 0.1);
+  --font: "DM Sans", system-ui, -apple-system, sans-serif;
 }
 
 *,
@@ -16,22 +17,10 @@
 
 body {
   margin: 0;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font);
   color: var(--color-text-black);
-  background: var(--color-surface);
+  background: #f0f2f5;
   min-height: 100vh;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at 10% 10%, rgba(35, 155, 216, 0.15), transparent 45%),
-    radial-gradient(circle at 90% 20%, rgba(2, 159, 76, 0.1), transparent 50%),
-    radial-gradient(circle at 50% 100%, rgba(1, 20, 128, 0.12), transparent 60%);
-  z-index: -2;
-  pointer-events: none;
 }
 
 main {
@@ -39,36 +28,40 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 120px 24px 80px;
+  padding: 12px;
+  padding-top: 84px; /* navbar height + gap */
 }
 
+/* ── Navbar ── */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 72px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 48px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 0 40px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   z-index: 10;
 }
 
 .navbar__brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
 }
 
 .navbar__icon {
   display: inline-flex;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
 }
 
 .navbar__icon svg {
@@ -78,13 +71,13 @@ main {
 
 .navbar__links {
   display: flex;
-  gap: 28px;
-  font-size: 0.95rem;
+  gap: 24px;
+  font-size: 0.9rem;
 }
 
 .navbar__links a {
   text-decoration: none;
-  color: var(--color-text-black);
+  color: rgba(10, 14, 26, 0.6);
   font-weight: 500;
   transition: color 0.2s ease;
 }
@@ -94,65 +87,86 @@ main {
   color: var(--color-dark-blue);
 }
 
+/* ── Card principal — casi full screen ── */
 .popup-container {
-  width: min(1100px, 100%);
+  width: min(1560px, calc(100vw - 24px));
+  min-height: calc(100vh - 96px);
   background: var(--color-surface);
-  border-radius: 28px;
-  padding: 48px 56px;
-  box-shadow: 0 20px 60px var(--color-shadow);
+  border-radius: 20px;
+  padding: 52px 64px 44px;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 8px 32px rgba(0,0,0,0.07),
+    0 32px 80px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
   position: relative;
+  overflow: hidden;
 }
 
 .popup-container--docs {
-  max-width: 900px;
+  max-width: 860px;
+  min-height: auto;
   text-align: center;
   padding: 64px 72px;
 }
 
+/* ── Hero ── */
 .hero {
   text-align: center;
 }
 
 .hero__logo {
-  height: 64px;
-  margin-bottom: 12px;
+  height: 56px;
+  margin-bottom: 8px;
 }
 
 .hero__eyebrow {
-  font-size: 0.85rem;
-  letter-spacing: 0.2rem;
-  opacity: 0.6;
+  font-size: 0.75rem;
+  letter-spacing: 0.22rem;
+  opacity: 0.45;
   margin: 0;
-}
-
-.hero__title {
-  margin: 8px 0 0;
-  font-size: 2.6rem;
-  font-weight: 700;
-}
-
-.hero__subtitle {
-  margin: 6px 0 0;
-  font-size: 1rem;
-  color: var(--color-light-blue);
   font-weight: 500;
 }
 
+.hero__title {
+  margin: 6px 0 0;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-black);
+}
+
+.hero__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: var(--color-light-blue);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* ── Canvas orb ── */
 .entropy-wave {
+  flex: 1;           /* ocupa todo el espacio disponible entre hero y footer */
   width: 100%;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .entropy-wave__canvas {
-  width: min(780px, 100%);
-  height: 320px;
+  width: 100%;
+  height: clamp(280px, 46vh, 600px);
+  display: block;
+  border-radius: 12px;
+  /* Grain/sandy texture via SVG displacement filter */
+  filter: url(#sandy);
 }
 
+/* ── Status bar ── */
 .status-bar {
   display: flex;
   align-items: center;
@@ -162,8 +176,11 @@ main {
 }
 
 .status-bar__title {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.12rem;
+  opacity: 0.55;
 }
 
 .status-bar__list {
@@ -171,58 +188,69 @@ main {
   padding: 0;
   margin: 0;
   color: var(--color-dark-blue);
-  opacity: 0.8;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  font-weight: 400;
+  opacity: 0.75;
 }
 
 .button {
-  padding: 12px 20px;
-  border-radius: 12px;
-  background: var(--color-gray);
-  color: var(--color-text-black);
+  padding: 11px 22px;
+  border-radius: 10px;
+  background: var(--color-text-black);
+  color: #ffffff;
   text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  font-family: var(--font);
 }
 
 .button:hover {
-  background: var(--color-dark-blue);
-  color: #ffffff;
+  opacity: 0.8;
+  transform: translateY(-1px);
 }
 
+/* ── Docs ── */
 .docs__title {
-  margin: 0 0 16px;
-  font-size: 2.2rem;
+  margin: 0 0 14px;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .docs__text {
   margin: 0;
-  font-size: 1.05rem;
-  opacity: 0.8;
+  font-size: 1rem;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
+/* ── Responsive ── */
 @media (max-width: 900px) {
   .navbar {
-    padding: 0 24px;
+    padding: 0 20px;
   }
 
   .popup-container {
-    padding: 36px 32px;
+    padding: 36px 28px 32px;
+    border-radius: 16px;
   }
 
   .hero__title {
-    font-size: 2.1rem;
-  }
-
-  .entropy-wave__canvas {
-    height: 260px;
+    font-size: 1.9rem;
   }
 }
 
 @media (max-width: 600px) {
+  main {
+    padding: 8px;
+    padding-top: 76px;
+  }
+
   .navbar {
-    height: 64px;
+    height: 60px;
   }
 
   .navbar__links {
@@ -231,7 +259,8 @@ main {
   }
 
   .popup-container {
-    padding: 32px 24px;
+    padding: 28px 20px 24px;
+    min-height: calc(100vh - 80px);
   }
 
   .status-bar {
