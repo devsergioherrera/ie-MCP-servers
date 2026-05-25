@@ -10,11 +10,9 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "astro": "^4.16.2",
-    "p5": "^1.9.4"
+    "astro": "^4.16.2"
   },
   "devDependencies": {
-    "@types/p5": "^1.7.6",
     "typescript": "^5.5.4"
   }
 }

@@ -1,76 +1,90 @@
 <div class="entropy-wave">
-  <div id="entropy-canvas" class="entropy-wave__canvas" aria-hidden="true"></div>
+  <canvas id="entropy-canvas" class="entropy-wave__canvas" aria-hidden="true"></canvas>
 </div>
 
-<script lang="ts">
-  import p5 from "p5";
+<script is:inline>
+(function () {
+  var canvas = document.getElementById("entropy-canvas");
+  if (!canvas || canvas.dataset.ready) return;
+  canvas.dataset.ready = "true";
 
-  const container = document.getElementById("entropy-canvas");
+  var ctx = canvas.getContext("2d");
+  var frame = 0;
+  var seed = Math.floor(Math.random() * 10000);
 
-  if (container && !container.dataset.ready) {
-    container.dataset.ready = "true";
-    const seed = Math.floor(Math.random() * 10000);
-
-    const sketch = (p: p5) => {
-      let centerX = 0;
-      let centerY = 0;
-      let baseRadius = 0;
-
-      const resize = () => {
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        p.resizeCanvas(width, height);
-        centerX = width / 2;
-        centerY = height / 2;
-        baseRadius = Math.min(width, height) * 0.28;
-      };
-
-      p.setup = () => {
-        p.createCanvas(container.clientWidth, container.clientHeight);
-        p.pixelDensity(1);
-        p.noFill();
-        resize();
-      };
-
-      p.draw = () => {
-        p.clear();
-        p.background(255);
-        const t = p.frameCount * 0.006;
-        const layers = 12;
-
-        for (let layer = 0; layer < layers; layer += 1) {
-          const mix = layer / (layers - 1);
-          const blue = p.color(1, 20, 128, 140);
-          const light = p.color(35, 155, 216, 120);
-          const green = p.color(2, 159, 76, 120);
-          const first = p.lerpColor(blue, light, mix);
-          const shade = p.lerpColor(first, green, mix * 0.8);
-
-          p.stroke(shade);
-          p.strokeWeight(1);
-          p.beginShape();
-          for (let angle = 0; angle <= p.TWO_PI + 0.06; angle += 0.06) {
-            const noiseValue = p.noise(
-              Math.cos(angle) + seed * 0.001,
-              Math.sin(angle) + seed * 0.002,
-              t + layer * 0.08
-            );
-            const wave = p.sin(angle * 3 + t * 2 + layer) * 12;
-            const radius = baseRadius + noiseValue * 120 + wave;
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius * 0.85;
-            p.vertex(x, y);
-          }
-          p.endShape();
-        }
-      };
-
-      p.windowResized = () => {
-        resize();
-      };
-    };
-
-    // eslint-disable-next-line no-new
-    new p5(sketch, container);
+  // Minimal seeded pseudo-noise (value noise via hash)
+  function hash(x, y, z) {
+    var n = Math.sin(x * 127.1 + y * 311.7 + z * 74.3) * 43758.5453;
+    return n - Math.floor(n);
   }
+  function smoothNoise(x, y, z) {
+    var ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
+    var fx = x - ix, fy = y - iy, fz = z - iz;
+    // smoothstep
+    fx = fx * fx * (3 - 2 * fx);
+    fy = fy * fy * (3 - 2 * fy);
+    fz = fz * fz * (3 - 2 * fz);
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    return lerp(
+      lerp(lerp(hash(ix,iy,iz), hash(ix+1,iy,iz), fx), lerp(hash(ix,iy+1,iz), hash(ix+1,iy+1,iz), fx), fy),
+      lerp(lerp(hash(ix,iy,iz+1), hash(ix+1,iy,iz+1), fx), lerp(hash(ix,iy+1,iz+1), hash(ix+1,iy+1,iz+1), fx), fy),
+      fz
+    );
+  }
+
+  function resize() {
+    var parent = canvas.parentElement;
+    canvas.width  = parent.clientWidth;
+    canvas.height = parent.clientHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  function lerpColor(r1,g1,b1,a1, r2,g2,b2,a2, t) {
+    return [
+      r1 + (r2-r1)*t | 0,
+      g1 + (g2-g1)*t | 0,
+      b1 + (b2-b1)*t | 0,
+      a1 + (a2-a1)*t
+    ];
+  }
+
+  function draw() {
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, w, h);
+
+    var cx = w / 2, cy = h / 2;
+    var baseR = Math.min(w, h) * 0.28;
+    var t = frame * 0.006;
+    var layers = 12;
+
+    for (var layer = 0; layer < layers; layer++) {
+      var mix = layer / (layers - 1);
+      // blue=[1,20,128,140]  light=[35,155,216,120]  green=[2,159,76,120]
+      var c1 = lerpColor(1,20,128,140, 35,155,216,120, mix);
+      var c  = lerpColor(c1[0],c1[1],c1[2],c1[3], 2,159,76,120, mix * 0.8);
+      ctx.strokeStyle = "rgba("+c[0]+","+c[1]+","+c[2]+","+c[3]/255+")";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      var step = 0.06, TWO_PI = Math.PI * 2;
+      for (var angle = 0; angle <= TWO_PI + step; angle += step) {
+        var nx = Math.cos(angle) + seed * 0.001;
+        var ny = Math.sin(angle) + seed * 0.002;
+        var nz = t + layer * 0.08;
+        var noiseVal = smoothNoise(nx, ny, nz);
+        var wave = Math.sin(angle * 3 + t * 2 + layer) * 12;
+        var radius = baseR + noiseVal * 120 + wave;
+        var x = cx + Math.cos(angle) * radius;
+        var y = cy + Math.sin(angle) * radius * 0.85;
+        if (angle === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    frame++;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
 </script>
