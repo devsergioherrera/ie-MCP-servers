@@ -1,18 +1,15 @@
 <!--
-  SVG grain filter: feTurbulence → feDisplacementMap
-  Warps each pixel by a random offset (scale=8) giving the sandy/granular edge.
-  The fractalNoise drives organic, dune-like displacement on the blob edges.
+  SVG grain filter — desplazamiento suave de los bordes (sandy feel).
+  Aplicado al canvas vía CSS filter: url(#grain).
 -->
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
   <defs>
-    <filter id="sandy" x="-20%" y="-20%" width="140%" height="140%"
+    <filter id="grain" x="-5%" y="-5%" width="110%" height="110%"
             color-interpolation-filters="linearRGB">
-      <!-- Grain texture -->
-      <feTurbulence type="fractalNoise" baseFrequency="0.62 0.58"
-                    numOctaves="4" seed="8" stitchTiles="stitch" result="noise"/>
-      <!-- Displace the blob edges by ±8px → sandy, dune-like border -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.70 0.65"
+                    numOctaves="3" seed="5" stitchTiles="stitch" result="noise"/>
       <feDisplacementMap in="SourceGraphic" in2="noise"
-                         scale="8" xChannelSelector="R" yChannelSelector="G"/>
+                         scale="4" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
   </defs>
 </svg>
@@ -29,100 +26,103 @@
 
   var ctx = canvas.getContext("2d");
   var frame = 0;
+  var seed  = Math.floor(Math.random() * 9999);
 
-  /* ── Smooth value noise (3-D) ── */
+  /* ── Value noise 3-D ── */
   function hash(x, y, z) {
-    var n = Math.sin(x * 127.1 + y * 311.7 + z * 74.3) * 43758.5453123;
+    var n = Math.sin(x * 127.1 + y * 311.7 + z * 74.3) * 43758.5453;
     return n - Math.floor(n);
   }
-  function lerp(a, b, t) { return a + (b - a) * t; }
   function fade(t) { return t * t * (3 - 2 * t); }
+  function lerpF(a, b, t) { return a + (b - a) * t; }
   function noise(x, y, z) {
     var ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
-    var fx = fade(x - ix), fy = fade(y - iy), fz = fade(z - iz);
-    return lerp(
-      lerp(lerp(hash(ix,iy,iz),   hash(ix+1,iy,iz),   fx),
-           lerp(hash(ix,iy+1,iz), hash(ix+1,iy+1,iz), fx), fy),
-      lerp(lerp(hash(ix,iy,iz+1),   hash(ix+1,iy,iz+1),   fx),
-           lerp(hash(ix,iy+1,iz+1), hash(ix+1,iy+1,iz+1), fx), fy),
+    var fx = fade(x-ix), fy = fade(y-iy), fz = fade(z-iz);
+    return lerpF(
+      lerpF(lerpF(hash(ix,iy,iz),   hash(ix+1,iy,iz),   fx),
+            lerpF(hash(ix,iy+1,iz), hash(ix+1,iy+1,iz), fx), fy),
+      lerpF(lerpF(hash(ix,iy,iz+1),   hash(ix+1,iy,iz+1),   fx),
+            lerpF(hash(ix,iy+1,iz+1), hash(ix+1,iy+1,iz+1), fx), fy),
       fz
     );
   }
 
-  /* ── Blob definitions ──
-     Each blob = soft radial gradient centred at (cx+noise_offset, cy+noise_offset).
-     r_frac = radius as fraction of min(w,h).
-     Colors from IE palette: navy, electric blue, teal, green, deep ocean.
-  */
-  var blobs = [
-    /* Diffuse navy base — fills the canvas */
-    { ox:0.50, oy:0.50, r:0.90, speed:0.14, phase:0.0, drift:0.10,
-      c0:"rgba(1,20,128,0.40)",   c1:"rgba(1,20,128,0)" },
-    /* Electric blue — wanders wide left */
-    { ox:0.32, oy:0.44, r:0.62, speed:0.25, phase:1.4, drift:0.30,
-      c0:"rgba(35,155,216,0.52)", c1:"rgba(35,155,216,0)" },
-    /* Green — wanders wide right */
-    { ox:0.68, oy:0.56, r:0.58, speed:0.30, phase:2.8, drift:0.28,
-      c0:"rgba(2,159,76,0.46)",   c1:"rgba(2,159,76,0)" },
-    /* Deep blue accent — upper */
-    { ox:0.50, oy:0.35, r:0.46, speed:0.20, phase:4.2, drift:0.22,
-      c0:"rgba(10,60,200,0.38)",  c1:"rgba(10,60,200,0)" },
-    /* Teal trail — lower */
-    { ox:0.42, oy:0.65, r:0.44, speed:0.34, phase:5.6, drift:0.24,
-      c0:"rgba(10,160,110,0.36)", c1:"rgba(10,160,110,0)" },
-    /* Cyan specular — small bright spot, fast */
-    { ox:0.56, oy:0.46, r:0.26, speed:0.48, phase:0.7, drift:0.18,
-      c0:"rgba(70,185,240,0.55)", c1:"rgba(70,185,240,0)" },
-    /* Soft green haze — slow, wide */
-    { ox:0.60, oy:0.58, r:0.52, speed:0.16, phase:3.5, drift:0.26,
-      c0:"rgba(30,200,100,0.28)", c1:"rgba(30,200,100,0)" },
-  ];
+  /* ── Color interpolation: navy → electric-blue → green ──
+     mix ∈ [0,1]:  0 = dark navy,  0.5 = electric blue,  1 = green     */
+  function strokeColor(mix, alpha) {
+    var r, g, b;
+    if (mix < 0.5) {
+      var m = mix * 2;               // 0→1 across first half
+      r = Math.round(1   + (35-1)   * m);  //   1 → 35
+      g = Math.round(20  + (155-20) * m);  //  20 → 155
+      b = Math.round(128 + (216-128)* m);  // 128 → 216
+    } else {
+      var m = (mix - 0.5) * 2;       // 0→1 across second half
+      r = Math.round(35  + (2-35)   * m);  //  35 → 2
+      g = Math.round(155 + (159-155)* m);  // 155 → 159
+      b = Math.round(216 + (76-216) * m);  // 216 → 76
+    }
+    return "rgba("+r+","+g+","+b+","+alpha.toFixed(3)+")";
+  }
 
   function resize() {
-    var parent = canvas.parentElement;
-    canvas.width  = parent.clientWidth  || 800;
-    canvas.height = parent.clientHeight || 400;
+    var p = canvas.parentElement;
+    canvas.width  = p.clientWidth  || 900;
+    canvas.height = p.clientHeight || 420;
   }
   resize();
   window.addEventListener("resize", resize);
 
+  var LAYERS     = 72;    // dense ribbon — more layers = richer texture
+  var ANGLE_STEP = 0.045; // ~140 vertices per ring → smooth curve
+  var TWO_PI     = Math.PI * 2;
+
   function draw() {
     var w = canvas.width, h = canvas.height;
     var cx = w * 0.5, cy = h * 0.5;
-    var minDim = Math.min(w, h);
-    var t = frame * 0.004;
+    /* Base radius: ~32% of shortest side; noise & wave add ±25% on top */
+    var baseR = Math.min(w, h) * 0.30;
+    var t = frame * 0.005; // animation speed
 
-    /* Clear to pure white */
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#ffffff";
+    /* Faint white trail → motion blur effect without extra canvas */
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
     ctx.fillRect(0, 0, w, h);
 
-    /* Composite: source-over at low alpha → layers build up naturally */
-    ctx.globalCompositeOperation = "source-over";
+    for (var layer = 0; layer < LAYERS; layer++) {
+      var mix   = layer / (LAYERS - 1);          // 0 → 1
+      /* Each layer gets its own noise "slice" in z */
+      var tOff  = t + layer * 0.055;
+      /* Alpha: slightly higher in the mid-layers (gives volume) */
+      var alpha = 0.28 + 0.18 * Math.sin(mix * Math.PI);
 
-    blobs.forEach(function(b, i) {
-      /* Noise-driven centre offset — each axis uses a different seed slice */
-      var nx = noise(t * b.speed + b.phase,       0.5, i * 0.37);
-      var ny = noise(0.5, t * b.speed + b.phase,  i * 0.37 + 10);
-      /* Move ± drift% of minDim — wider for peripheral blobs */
-      var driftPx = minDim * b.drift;
-      var bx = cx + (cx * (b.ox * 2 - 1)) + (nx - 0.5) * 2 * driftPx;
-      var by = cy + (cy * (b.oy * 2 - 1)) + (ny - 0.5) * 2 * driftPx;
-
-      /* Radius breathes gently */
-      var breathe = 0.88 + 0.12 * Math.sin(t * b.speed * 2.5 + b.phase);
-      var r = minDim * b.r * breathe;
-
-      var grad = ctx.createRadialGradient(bx, by, 0, bx, by, r);
-      grad.addColorStop(0,   b.c0);
-      grad.addColorStop(0.5, b.c0.replace(/[\d.]+\)$/, "0.15)"));
-      grad.addColorStop(1,   b.c1);
-
-      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(bx, by, r, 0, Math.PI * 2);
-      ctx.fill();
-    });
+      ctx.strokeStyle = strokeColor(mix, alpha);
+      ctx.lineWidth   = 1.0;
+
+      var started = false;
+      for (var a = 0; a <= TWO_PI + ANGLE_STEP; a += ANGLE_STEP) {
+        /* Organic noise: sample at point on unit circle rotated by seed */
+        var nx = Math.cos(a) + seed * 0.001;
+        var ny = Math.sin(a) + seed * 0.002;
+        var nv = noise(nx, ny, tOff);
+
+        /* Wave distortion: 3 harmonics for complex shape */
+        var wave  =  Math.sin(a * 3 + t * 1.8 + layer * 0.12) * 14
+                   + Math.sin(a * 5 + t * 1.1 - layer * 0.07) *  6
+                   + Math.sin(a * 2 - t * 0.9 + layer * 0.05) *  8;
+
+        var radius = baseR + nv * 110 + wave;
+
+        /* Slight vertical squeeze → elliptical / perspective feel */
+        var x = cx + Math.cos(a) * radius;
+        var y = cy + Math.sin(a) * radius * 0.82;
+
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else           { ctx.lineTo(x, y); }
+      }
+      ctx.stroke();
+    }
 
     frame++;
     requestAnimationFrame(draw);
