@@ -55,24 +55,27 @@
      Colors from IE palette: navy, electric blue, teal, green, deep ocean.
   */
   var blobs = [
-    /* Large navy anchor — barely moves */
-    { ox:0.50, oy:0.50, r:0.72, speed:0.18, phase:0.0,
-      c0:"rgba(1,20,128,0.55)",   c1:"rgba(1,20,128,0)" },
-    /* Electric blue — drifts slowly left */
-    { ox:0.38, oy:0.46, r:0.55, speed:0.28, phase:1.4,
-      c0:"rgba(35,155,216,0.50)", c1:"rgba(35,155,216,0)" },
-    /* Teal accent */
-    { ox:0.62, oy:0.54, r:0.48, speed:0.32, phase:2.8,
-      c0:"rgba(2,159,76,0.42)",   c1:"rgba(2,159,76,0)" },
-    /* Mid blue highlight */
-    { ox:0.50, oy:0.44, r:0.40, speed:0.22, phase:4.2,
-      c0:"rgba(20,80,220,0.38)",  c1:"rgba(20,80,220,0)" },
-    /* Green trail */
-    { ox:0.45, oy:0.58, r:0.35, speed:0.36, phase:5.6,
-      c0:"rgba(10,160,100,0.32)", c1:"rgba(10,160,100,0)" },
-    /* Bright specular — small, fast */
-    { ox:0.54, oy:0.48, r:0.22, speed:0.50, phase:0.7,
-      c0:"rgba(80,190,240,0.45)", c1:"rgba(80,190,240,0)" },
+    /* Diffuse navy base — fills the canvas */
+    { ox:0.50, oy:0.50, r:0.90, speed:0.14, phase:0.0, drift:0.10,
+      c0:"rgba(1,20,128,0.40)",   c1:"rgba(1,20,128,0)" },
+    /* Electric blue — wanders wide left */
+    { ox:0.32, oy:0.44, r:0.62, speed:0.25, phase:1.4, drift:0.30,
+      c0:"rgba(35,155,216,0.52)", c1:"rgba(35,155,216,0)" },
+    /* Green — wanders wide right */
+    { ox:0.68, oy:0.56, r:0.58, speed:0.30, phase:2.8, drift:0.28,
+      c0:"rgba(2,159,76,0.46)",   c1:"rgba(2,159,76,0)" },
+    /* Deep blue accent — upper */
+    { ox:0.50, oy:0.35, r:0.46, speed:0.20, phase:4.2, drift:0.22,
+      c0:"rgba(10,60,200,0.38)",  c1:"rgba(10,60,200,0)" },
+    /* Teal trail — lower */
+    { ox:0.42, oy:0.65, r:0.44, speed:0.34, phase:5.6, drift:0.24,
+      c0:"rgba(10,160,110,0.36)", c1:"rgba(10,160,110,0)" },
+    /* Cyan specular — small bright spot, fast */
+    { ox:0.56, oy:0.46, r:0.26, speed:0.48, phase:0.7, drift:0.18,
+      c0:"rgba(70,185,240,0.55)", c1:"rgba(70,185,240,0)" },
+    /* Soft green haze — slow, wide */
+    { ox:0.60, oy:0.58, r:0.52, speed:0.16, phase:3.5, drift:0.26,
+      c0:"rgba(30,200,100,0.28)", c1:"rgba(30,200,100,0)" },
   ];
 
   function resize() {
@@ -101,10 +104,10 @@
       /* Noise-driven centre offset — each axis uses a different seed slice */
       var nx = noise(t * b.speed + b.phase,       0.5, i * 0.37);
       var ny = noise(0.5, t * b.speed + b.phase,  i * 0.37 + 10);
-      /* Move ±18% of minDim */
-      var drift = minDim * 0.18;
-      var bx = cx + (nx - 0.5) * 2 * drift;
-      var by = cy + (ny - 0.5) * 2 * drift;
+      /* Move ± drift% of minDim — wider for peripheral blobs */
+      var driftPx = minDim * b.drift;
+      var bx = cx + (cx * (b.ox * 2 - 1)) + (nx - 0.5) * 2 * driftPx;
+      var by = cy + (cy * (b.oy * 2 - 1)) + (ny - 0.5) * 2 * driftPx;
 
       /* Radius breathes gently */
       var breathe = 0.88 + 0.12 * Math.sin(t * b.speed * 2.5 + b.phase);
