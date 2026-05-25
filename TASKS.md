@@ -25,7 +25,7 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
   - Anadir `location /glpi/` en `deploy/nginx/mcp.ie.conf`.
 - [ ] **#6 MCP PostgreSQL OpenProject** — analogo a #5 con tablas:
   - `work_packages`, `projects`, `users`, `types`, `statuses`, `time_entries`, `members`.
-- [ ] **#7 Confirmar version final de DAB** — hoy se usa `1.7-latest`. Cuando salga `2.0` GA (hoy en RC), evaluar upgrade.
+- [ ] **#7 Confirmar version final de DAB** — hoy se usa `1.7.93`. Cuando salga `2.0` GA (hoy en RC), evaluar upgrade. **Anomalia conocida en 1.7.93**: `runtime.mcp.dml-tools.execute-entity=false` no oculta la tool `execute_entity` de `tools/list`. Y `aggregate-records=true` no la expone. Es inofensivo (sin SPs registrados como `custom-tool`, `execute_entity` no hace nada utilizable). Probable que 2.0 lo arregle.
 
 ## Funcional — MCP de Docs
 

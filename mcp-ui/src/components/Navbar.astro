@@ -1,0 +1,22 @@
+---
+const { pathname } = Astro.url;
+const isHome = pathname === "/";
+const isDocs = pathname.startsWith("/docs");
+---
+<nav class="navbar">
+  <div class="navbar__brand">
+    <span class="navbar__icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64" role="img" aria-label="Integral de Empaques logo">
+        <path
+          d="M32 4 56 18v28L32 60 8 46V18L32 4Z"
+          fill="var(--color-dark-blue)"
+        />
+      </svg>
+    </span>
+    <span class="navbar__name">Integral de Empaques</span>
+  </div>
+  <div class="navbar__links">
+    <a class={isHome ? "active" : ""} href="/">Home</a>
+    <a class={isDocs ? "active" : ""} href="/docs">Docs</a>
+  </div>
+</nav>

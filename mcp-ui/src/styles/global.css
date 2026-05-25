@@ -1,0 +1,241 @@
+:root {
+  --color-dark-blue: #011480;
+  --color-light-blue: #239bd8;
+  --color-green: #029f4c;
+  --color-gray: #c0c0c2;
+  --color-text-black: #000000;
+  --color-surface: #ffffff;
+  --color-shadow: rgba(10, 20, 40, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--color-text-black);
+  background: var(--color-surface);
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(35, 155, 216, 0.15), transparent 45%),
+    radial-gradient(circle at 90% 20%, rgba(2, 159, 76, 0.1), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(1, 20, 128, 0.12), transparent 60%);
+  z-index: -2;
+  pointer-events: none;
+}
+
+main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 24px 80px;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.navbar__icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+}
+
+.navbar__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.navbar__links {
+  display: flex;
+  gap: 28px;
+  font-size: 0.95rem;
+}
+
+.navbar__links a {
+  text-decoration: none;
+  color: var(--color-text-black);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.navbar__links a:hover,
+.navbar__links a.active {
+  color: var(--color-dark-blue);
+}
+
+.popup-container {
+  width: min(1100px, 100%);
+  background: var(--color-surface);
+  border-radius: 28px;
+  padding: 48px 56px;
+  box-shadow: 0 20px 60px var(--color-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  position: relative;
+}
+
+.popup-container--docs {
+  max-width: 900px;
+  text-align: center;
+  padding: 64px 72px;
+}
+
+.hero {
+  text-align: center;
+}
+
+.hero__logo {
+  height: 64px;
+  margin-bottom: 12px;
+}
+
+.hero__eyebrow {
+  font-size: 0.85rem;
+  letter-spacing: 0.2rem;
+  opacity: 0.6;
+  margin: 0;
+}
+
+.hero__title {
+  margin: 8px 0 0;
+  font-size: 2.6rem;
+  font-weight: 700;
+}
+
+.hero__subtitle {
+  margin: 6px 0 0;
+  font-size: 1rem;
+  color: var(--color-light-blue);
+  font-weight: 500;
+}
+
+.entropy-wave {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entropy-wave__canvas {
+  width: min(780px, 100%);
+  height: 320px;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.status-bar__title {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.status-bar__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--color-dark-blue);
+  opacity: 0.8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--color-gray);
+  color: var(--color-text-black);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  background: var(--color-dark-blue);
+  color: #ffffff;
+}
+
+.docs__title {
+  margin: 0 0 16px;
+  font-size: 2.2rem;
+}
+
+.docs__text {
+  margin: 0;
+  font-size: 1.05rem;
+  opacity: 0.8;
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    padding: 0 24px;
+  }
+
+  .popup-container {
+    padding: 36px 32px;
+  }
+
+  .hero__title {
+    font-size: 2.1rem;
+  }
+
+  .entropy-wave__canvas {
+    height: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    height: 64px;
+  }
+
+  .navbar__links {
+    gap: 16px;
+    font-size: 0.85rem;
+  }
+
+  .popup-container {
+    padding: 32px 24px;
+  }
+
+  .status-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

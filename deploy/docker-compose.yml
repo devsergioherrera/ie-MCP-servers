@@ -41,8 +41,8 @@ services:
     container_name: mcp-ie-docs
     restart: unless-stopped
     volumes:
-      - ../docs:/docs:rw          # rw: el MCP puede editar markdowns
-      - ../logs:/logs:rw          # logs estructurados JSON persistidos
+      - ../docs:/docs:rw # rw: el MCP puede editar markdowns
+      - ../logs:/logs:rw # logs estructurados JSON persistidos
     ports:
       - "127.0.0.1:5004:8000"
     networks: [mcp_net]
@@ -61,6 +61,19 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 3
+
+  mcp-ui:
+    build: ../mcp-ui
+    container_name: mcp-ui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5010:80"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   # ============================================================
   # Scaffolding listo, descomentar cuando se definan entidades

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./Assets/logo.png" alt="Integral de Empaques" width="300" />
+  <img src="./mcp-ui/public/assets/logo.png" alt="Integral de Empaques" width="300" />
 </div>
 
 # IE-MCP-Servers
@@ -10,26 +10,47 @@
 
 ## Stack Tecnologico
 
-| Capa                    | Tecnologia                                                              |
-| ----------------------- | ----------------------------------------------------------------------- |
-| **MCP de BDs**          | Microsoft Data API Builder (DAB) v1.7+ — `data-api-builder:1.7.93`  |
-| **MCP de docs**         | Python 3.12 + `mcp` SDK oficial (FastMCP, streamable-http)              |
-| **Orquestacion**        | Docker Compose                                                          |
-| **Reverse proxy**       | Nginx **nativo en linux.ie** (no contenerizado)                         |
-| **Host de despliegue**  | linux.ie — Ubuntu 24.04                                                 |
+| Capa                   | Tecnologia                                                         |
+| ---------------------- | ------------------------------------------------------------------ |
+| **MCP de BDs**         | Microsoft Data API Builder (DAB) v1.7+ — `data-api-builder:1.7.93` |
+| **MCP de docs**        | Python 3.12 + `mcp` SDK oficial (FastMCP, streamable-http)         |
+| **Orquestacion**       | Docker Compose                                                     |
+| **Reverse proxy**      | Nginx **nativo en linux.ie** (no contenerizado)                    |
+| **Host de despliegue** | linux.ie — Ubuntu 24.04                                            |
+
+---
+
+## UI estatica (Astro)
+
+Landing page para `http://mcp.ie` con estetica minimalista tipo Apple, animacion de entropia en canvas (p5.js) y espacio listo para integrar agentes de IA.
+
+**Colores corporativos**:
+
+| Variable             | Color     |
+| -------------------- | --------- |
+| `--color-dark-blue`  | `#011480` |
+| `--color-light-blue` | `#239bd8` |
+| `--color-green`      | `#029f4c` |
+| `--color-gray`       | `#c0c0c2` |
+
+**Rutas**:
+
+- UI: `http://mcp.ie/` y `http://mcp.ie/docs`
+- MCP docs: `http://mcp.ie/docs/mcp`
 
 ---
 
 ## Que expone
 
-| MCP Server              | Motor / Origen                  | Ruta publica (Nginx)              | Estado            |
-| ----------------------- | ------------------------------- | --------------------------------- | ----------------- |
-| `mcp-mssql`             | SQL Server (SIE + EMPAQUE(PR))  | `http://mcp.ie/mssql/mcp`         | Implementado      |
-| `mcp-ie-docs`           | Filesystem (`/docs/*.md`)       | `http://mcp.ie/docs/mcp`          | Implementado      |
-| `mcp-mysql-glpi`        | MySQL GLPI                      | `http://mcp.ie/glpi/mcp`          | Scaffolding       |
-| `mcp-pg-op`             | PostgreSQL OpenProject          | `http://mcp.ie/openproject/mcp`   | Scaffolding       |
+| MCP Server       | Motor / Origen                 | Ruta publica (Nginx)            | Estado       |
+| ---------------- | ------------------------------ | ------------------------------- | ------------ |
+| `mcp-mssql`      | SQL Server (SIE + EMPAQUE(PR)) | `http://mcp.ie/mssql/mcp`       | Implementado |
+| `mcp-ie-docs`    | Filesystem (`/docs/*.md`)      | `http://mcp.ie/docs/mcp`        | Implementado |
+| `mcp-mysql-glpi` | MySQL GLPI                     | `http://mcp.ie/glpi/mcp`        | Scaffolding  |
+| `mcp-pg-op`      | PostgreSQL OpenProject         | `http://mcp.ie/openproject/mcp` | Scaffolding  |
 
 **Primera iteracion (MSSQL)** — entidades expuestas:
+
 - `CamionXDia` → `SIE.dbo.CAMION_X_DIA` (programacion de despachos)
 - `veb` → `[EMPAQUE(PR)].dbo.vw_EtiquetasBI` (vista BI de etiquetas)
 
@@ -60,6 +81,7 @@
 ### Crear usuarios `mcp_reader` (manual, una vez por BD)
 
 **SQL Server**:
+
 ```sql
 CREATE LOGIN mcp_reader WITH PASSWORD = '<PASSWORD>';
 
@@ -73,6 +95,7 @@ GRANT SELECT ON dbo.vw_EtiquetasBI TO mcp_reader;
 ```
 
 **MySQL** (cuando se implemente):
+
 ```sql
 CREATE USER 'mcp_reader'@'%' IDENTIFIED BY '<PASSWORD>';
 GRANT SELECT ON glpi.* TO 'mcp_reader'@'%';
@@ -80,6 +103,7 @@ FLUSH PRIVILEGES;
 ```
 
 **PostgreSQL** (cuando se implemente):
+
 ```sql
 CREATE USER mcp_reader WITH PASSWORD '<PASSWORD>';
 GRANT CONNECT ON DATABASE openproject TO mcp_reader;
@@ -113,8 +137,8 @@ cp .env.example .env
 ### 3. Build y levantar
 
 ```bash
-docker compose build mcp-mssql mcp-ie-docs
-docker compose up -d mcp-mssql mcp-ie-docs
+docker compose build mcp-mssql mcp-ie-docs mcp-ui
+docker compose up -d mcp-mssql mcp-ie-docs mcp-ui
 docker compose ps
 ```
 
@@ -142,7 +166,7 @@ npx @modelcontextprotocol/inspector http://mcp.ie/docs/mcp
 {
   "mcpServers": {
     "ie-mssql": { "url": "http://mcp.ie/mssql/mcp" },
-    "ie-docs":  { "url": "http://mcp.ie/docs/mcp" }
+    "ie-docs": { "url": "http://mcp.ie/docs/mcp" }
   }
 }
 ```
@@ -153,6 +177,7 @@ npx @modelcontextprotocol/inspector http://mcp.ie/docs/mcp
 
 ```
 ie-MCP-servers/
+├── mcp-ui/                       # UI estatica (Astro + p5.js)
 ├── data-mcp-servers/             # MCP que tocan BDs (todos con DAB)
 │   ├── mssql/                    # SQL Server produccion (SIE + EMPAQUE)
 │   ├── mysql-glpi/               # Scaffolding GLPI
@@ -169,6 +194,37 @@ ie-MCP-servers/
 ├── AGENTS.md                     # contexto completo para agentes de IA
 ├── CLAUDE.md / GEMINI.md / .cursorrules / .github/copilot-instructions.md
 └── README.md
+```
+
+---
+
+## Desarrollo UI (Astro)
+
+```bash
+cd mcp-ui
+npm install
+npm run dev
+```
+
+**Build/preview**:
+
+```bash
+npm run build
+npm run preview
+```
+
+**Typecheck**:
+
+```bash
+npm run typecheck
+```
+
+**Docker**:
+
+```bash
+cd mcp-ui
+docker build -t ie-mcp-ui .
+docker run --rm -p 8080:80 ie-mcp-ui
 ```
 
 ---
@@ -197,6 +253,7 @@ IDs de proyectos disponibles:
 | 8   | Daily Sistemas                 |
 
 Configurar API key:
+
 ```powershell
 [Environment]::SetEnvironmentVariable("OPENPROJECT_API_KEY","<KEY>","User")
 ```

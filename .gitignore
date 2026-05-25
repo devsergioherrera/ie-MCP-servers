@@ -33,3 +33,11 @@ venv/
 
 # Claude Code local settings (mantener .claude/skills/ y .claude/commands/ en el repo)
 .claude/settings.local.json
+
+# mcp-ui (Astro)
+mcp-ui/node_modules/
+mcp-ui/dist/
+mcp-ui/.astro/
+
+# CodeGraph DB (generado localmente, no va al repo)
+.codegraph/

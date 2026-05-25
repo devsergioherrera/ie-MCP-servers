@@ -7,6 +7,8 @@ Para cambios de código/infra menores, ver `git log`.
 
 ## Changes
 
+- 2026-05-25 — Landing UI estatica en Astro (mcp-ui) para `http://mcp.ie/` y `/docs`. MCP de docs queda en `/docs/mcp` via Nginx; nuevo contenedor `mcp-ui` (puerto 5010).
+
 - 2026-05-15 — Fix escritura IE_MONITOR: movidas las 5 entidades de IE_MONITOR a contenedor DAB dedicado `mcp-mssql-monitor` (puerto 5005, ruta /monitor/mcp). Causa raiz: bug en DAB 1.7.93 donde las operaciones de escritura (create/update/delete) fallan con KeyNotFoundException sobre entidades definidas en data-source-files secundarios. Como data source primario del nuevo contenedor, el bug no aplica. `mcp-mssql` queda solo con SIE + EMPAQUE(PR) y DML tools deshabilitadas (read-only estricto). Nginx actualizado con location /monitor/. .mcp.json actualizado con servidor `ie-mssql-monitor`.
 
 - 2026-05-15 — Habilitada escritura (INSERT/UPDATE/DELETE) sobre las 5 entidades de `IE_MONITOR`. Nuevo LOGIN `mcp_writer` con `db_datareader + db_datawriter` sobre IE_MONITOR; `MSSQL_MONITOR_CONN` ahora usa este user. Tools `create_record`, `update_record`, `delete_record` habilitadas globalmente en DAB runtime. SIE y EMPAQUE(PR) siguen read-only por `permissions=["read"]` a nivel entidad (defense-in-depth: la tool aparece en tools/list pero DAB devuelve 403 al intentar escribir).

@@ -1,0 +1,76 @@
+<div class="entropy-wave">
+  <div id="entropy-canvas" class="entropy-wave__canvas" aria-hidden="true"></div>
+</div>
+
+<script lang="ts">
+  import p5 from "p5";
+
+  const container = document.getElementById("entropy-canvas");
+
+  if (container && !container.dataset.ready) {
+    container.dataset.ready = "true";
+    const seed = Math.floor(Math.random() * 10000);
+
+    const sketch = (p: p5) => {
+      let centerX = 0;
+      let centerY = 0;
+      let baseRadius = 0;
+
+      const resize = () => {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        p.resizeCanvas(width, height);
+        centerX = width / 2;
+        centerY = height / 2;
+        baseRadius = Math.min(width, height) * 0.28;
+      };
+
+      p.setup = () => {
+        p.createCanvas(container.clientWidth, container.clientHeight);
+        p.pixelDensity(1);
+        p.noFill();
+        resize();
+      };
+
+      p.draw = () => {
+        p.clear();
+        p.background(255);
+        const t = p.frameCount * 0.006;
+        const layers = 12;
+
+        for (let layer = 0; layer < layers; layer += 1) {
+          const mix = layer / (layers - 1);
+          const blue = p.color(1, 20, 128, 140);
+          const light = p.color(35, 155, 216, 120);
+          const green = p.color(2, 159, 76, 120);
+          const first = p.lerpColor(blue, light, mix);
+          const shade = p.lerpColor(first, green, mix * 0.8);
+
+          p.stroke(shade);
+          p.strokeWeight(1);
+          p.beginShape();
+          for (let angle = 0; angle <= p.TWO_PI + 0.06; angle += 0.06) {
+            const noiseValue = p.noise(
+              Math.cos(angle) + seed * 0.001,
+              Math.sin(angle) + seed * 0.002,
+              t + layer * 0.08
+            );
+            const wave = p.sin(angle * 3 + t * 2 + layer) * 12;
+            const radius = baseRadius + noiseValue * 120 + wave;
+            const x = centerX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius * 0.85;
+            p.vertex(x, y);
+          }
+          p.endShape();
+        }
+      };
+
+      p.windowResized = () => {
+        resize();
+      };
+    };
+
+    // eslint-disable-next-line no-new
+    new p5(sketch, container);
+  }
+</script>

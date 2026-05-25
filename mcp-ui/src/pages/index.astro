@@ -1,0 +1,32 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import EntropyWave from "@components/EntropyWave.astro";
+---
+<BaseLayout title="MCP Server | Integral de Empaques">
+  <section class="popup-container">
+    <header class="hero">
+      <img
+        src="/assets/logo.png"
+        alt="Integral de Empaques"
+        class="hero__logo"
+        loading="lazy"
+      />
+      <p class="hero__eyebrow">INTEGRAL DE EMPAQUES</p>
+      <h1 class="hero__title">MCP SERVER</h1>
+      <p class="hero__subtitle">mcp.ie</p>
+    </header>
+
+    <EntropyWave />
+
+    <footer class="status-bar">
+      <div>
+        <p class="status-bar__title">AI AGENT CONFIGURATION</p>
+        <ul class="status-bar__list">
+          <li>FETCHING DATA FROM ASTRO FRAMEWORK...</li>
+          <li>DEPLOYMENT SUCCESSFUL ON mcp.ie</li>
+        </ul>
+      </div>
+      <a class="button" href="/docs">DOCUMENTATION</a>
+    </footer>
+  </section>
+</BaseLayout>
