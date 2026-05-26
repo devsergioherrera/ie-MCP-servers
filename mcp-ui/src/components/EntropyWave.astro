@@ -1,133 +1,262 @@
-<!--
-  SVG grain filter — desplazamiento suave de los bordes (sandy feel).
-  Aplicado al canvas vía CSS filter: url(#grain).
--->
-<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
-  <defs>
-    <filter id="grain" x="-5%" y="-5%" width="110%" height="110%"
-            color-interpolation-filters="linearRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.70 0.65"
-                    numOctaves="3" seed="5" stitchTiles="stitch" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise"
-                         scale="4" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
+---
+// EntropyWave.astro
+// Componente Astro con onda entrópica e interacción de orbe magnético por GPU
+---
 
-<div class="entropy-wave">
-  <canvas id="entropy-canvas" class="entropy-wave__canvas" aria-hidden="true"></canvas>
+<div class="orb-wrap">
+  <canvas id="entropy-wave-canvas" class="orb-canvas" aria-hidden="true"></canvas>
 </div>
 
-<script is:inline>
-(function () {
-  var canvas = document.getElementById("entropy-canvas");
-  if (!canvas || canvas.dataset.ready) return;
-  canvas.dataset.ready = "true";
+<script>
+import { Camera, Geometry, Mesh, Program, Renderer, Transform } from "ogl";
 
-  var ctx = canvas.getContext("2d");
-  var frame = 0;
-  var seed  = Math.floor(Math.random() * 9999);
+const canvas = document.querySelector<HTMLCanvasElement>("#entropy-wave-canvas");
 
-  /* ── Value noise 3-D ── */
-  function hash(x, y, z) {
-    var n = Math.sin(x * 127.1 + y * 311.7 + z * 74.3) * 43758.5453;
-    return n - Math.floor(n);
-  }
-  function fade(t) { return t * t * (3 - 2 * t); }
-  function lerpF(a, b, t) { return a + (b - a) * t; }
-  function noise(x, y, z) {
-    var ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
-    var fx = fade(x-ix), fy = fade(y-iy), fz = fade(z-iz);
-    return lerpF(
-      lerpF(lerpF(hash(ix,iy,iz),   hash(ix+1,iy,iz),   fx),
-            lerpF(hash(ix,iy+1,iz), hash(ix+1,iy+1,iz), fx), fy),
-      lerpF(lerpF(hash(ix,iy,iz+1),   hash(ix+1,iy,iz+1),   fx),
-            lerpF(hash(ix,iy+1,iz+1), hash(ix+1,iy+1,iz+1), fx), fy),
-      fz
-    );
+if (canvas) {
+  const canvasElement = canvas;
+  const wrapElement = canvasElement.parentElement as HTMLElement | null;
+  let hasLoggedRender = false;
+
+  const renderer = new Renderer({
+    canvas: canvasElement,
+    dpr: Math.min(window.devicePixelRatio || 1, 2),
+    alpha: true,
+  });
+
+  const gl = renderer.gl;
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
+
+  const camera = new Camera(gl, { fov: 36, near: 0.1, far: 100 });
+  camera.position.set(0, 0, 14);
+  camera.lookAt([0, 0, 0]);
+
+  const scene = new Transform();
+
+  const particleCount = 1400;
+  const positions = new Float32Array(particleCount * 3);
+  const randoms = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 26;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 7.5;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+    randoms[i * 3 + 0] = Math.random();
+    randoms[i * 3 + 1] = Math.random();
+    randoms[i * 3 + 2] = Math.random();
   }
 
-  /* ── Color interpolation: navy → electric-blue → green ──
-     mix ∈ [0,1]:  0 = dark navy,  0.5 = electric blue,  1 = green     */
-  function strokeColor(mix, alpha) {
-    var r, g, b;
-    if (mix < 0.5) {
-      var m = mix * 2;               // 0→1 across first half
-      r = Math.round(1   + (35-1)   * m);  //   1 → 35
-      g = Math.round(20  + (155-20) * m);  //  20 → 155
-      b = Math.round(128 + (216-128)* m);  // 128 → 216
-    } else {
-      var m = (mix - 0.5) * 2;       // 0→1 across second half
-      r = Math.round(35  + (2-35)   * m);  //  35 → 2
-      g = Math.round(155 + (159-155)* m);  // 155 → 159
-      b = Math.round(216 + (76-216) * m);  // 216 → 76
-    }
-    return "rgba("+r+","+g+","+b+","+alpha.toFixed(3)+")";
-  }
+  const geometry = new Geometry(gl, {
+    position: { size: 3, data: positions },
+    aRandom: { size: 3, data: randoms },
+  });
+
+  const program = new Program(gl, {
+    vertex: /* glsl */ `
+      precision highp float;
+
+      attribute vec3 position;
+      attribute vec3 aRandom;
+
+      uniform mat4 modelMatrix;
+      uniform mat4 viewMatrix;
+      uniform mat4 projectionMatrix;
+      uniform float uTime;
+      uniform vec2 uMouse;
+      uniform float uAttract;
+
+      varying vec3 vColor;
+
+      void main() {
+        vec3 pos = position;
+
+        // Movimiento base de la onda entrópica
+        float speed = 0.82 + aRandom.z * 0.22;
+        float frequency1 = 0.09;
+        float amplitude1 = 3.2;
+        float frequency2 = 0.15;
+        float amplitude2 = 1.35;
+
+        float wave1 = sin(pos.x * frequency1 + uTime * speed + aRandom.x * 2.0) * amplitude1;
+        float wave2 = sin(pos.x * frequency2 + uTime * speed * 0.8 + aRandom.y * 1.5) * amplitude2 * aRandom.z;
+
+        float localDrift = 0.48 * aRandom.z;
+        float noiseX = sin(uTime * 2.8 + aRandom.x * 10.0) * localDrift;
+        float noiseY = cos(uTime * 2.2 + aRandom.y * 10.0) * localDrift;
+
+        pos.y = wave1 + wave2 + noiseY;
+        pos.x += noiseX;
+        pos.z += sin(uTime * 0.2 + aRandom.y * 5.0) * 1.1;
+
+        vec3 entropyPos = pos;
+
+        // Atraccion global: todas las particulas migran gradualmente al cursor.
+        vec3 mousePos = vec3(uMouse.x * 13.0, uMouse.y * 5.0, 0.0);
+        vec2 orbitDir = normalize(vec2(
+          sin(aRandom.x * 6.2831 + uTime * 1.6),
+          cos(aRandom.y * 6.2831 + uTime * 1.3)
+        ) + vec2(0.001));
+        float orbitRadius = 0.2 + aRandom.y * 0.46;
+        vec3 attractPos = vec3(
+          mousePos.xy + orbitDir * orbitRadius,
+          entropyPos.z * 0.28 + sin(uTime * 0.9 + aRandom.z * 9.0) * 0.22
+        );
+
+        float attractEase = smoothstep(0.0, 1.0, uAttract);
+        float attractMix = clamp(attractEase * attractEase * (0.22 + aRandom.z * 0.34), 0.0, 0.62);
+        pos = mix(entropyPos, attractPos, attractMix);
+
+        float distToMouse = distance(pos.xy, mousePos.xy);
+        float glowRadius = 1.45;
+
+        // Gradiente corporativo
+        float colorStep = smoothstep(-12.5, 12.5, pos.x);
+        vec3 darkBlue = vec3(0.0039, 0.0784, 0.5020);
+        vec3 lightBlue = vec3(0.1373, 0.6078, 0.8471);
+        vec3 green = vec3(0.0078, 0.6235, 0.2980);
+
+        vec3 blueMix = mix(darkBlue, lightBlue, aRandom.y * 0.8 + 0.1);
+        vColor = mix(blueMix, green, colorStep);
+
+        float glow = (1.0 - smoothstep(0.0, glowRadius, distToMouse)) * uAttract;
+        vColor = mix(vColor, vec3(1.0, 0.98, 0.94), glow * 0.45);
+
+        vec4 mvPos = viewMatrix * modelMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mvPos;
+
+        float depth = max(0.55, -mvPos.z);
+        gl_PointSize = (100.45 * (0.45 + aRandom.x * 0.4)) / depth;
+
+        gl_PointSize *= (1.0 + glow * 0.2);
+      }
+    `,
+    fragment: /* glsl */ `
+      precision highp float;
+      varying vec3 vColor;
+
+      void main() {
+        vec2 uv = gl_PointCoord - 0.5;
+        float dist = length(uv);
+        if (dist > 0.5) discard;
+
+        float edge = step(dist, 0.495);
+        float border = step(dist, 0.41) - step(dist, 0.495);
+        float core = step(dist, 0.41);
+
+        vec3 borderColor = vec3(1.0, 0.98, 0.94);
+        vec3 color = mix(borderColor, vColor, core);
+        color = mix(color * 0.88, color, core);
+        color = mix(color, borderColor, border * 0.85);
+
+        float alpha = edge;
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    uniforms: {
+      uTime: { value: 0 },
+      uMouse: { value: [0, 0] },
+      uAttract: { value: 0 },
+    },
+    transparent: true,
+    depthTest: true,
+    depthWrite: false,
+    cullFace: false,
+  });
+
+  const points = new Mesh(gl, {
+    mode: gl.POINTS,
+    geometry,
+    program,
+    frustumCulled: false,
+  });
+  points.setParent(scene);
+
+  let targetMouse = [0, 0];
+  let currentMouse = [0, 0];
+  let targetAttract = 0;
+  let currentAttract = 0;
+
+  canvasElement.addEventListener("mousemove", (event) => {
+    const rect = canvasElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    targetMouse[0] = 1 - (x / rect.width) * 2;
+    targetMouse[1] = -(y / rect.height) * 2 + 1;
+    targetAttract = 1;
+  });
+
+  canvasElement.addEventListener("mouseenter", () => {
+    targetAttract = 1;
+  });
+
+  canvasElement.addEventListener("mouseleave", () => {
+    targetAttract = 0;
+  });
 
   function resize() {
-    var p = canvas.parentElement;
-    canvas.width  = p.clientWidth  || 900;
-    canvas.height = p.clientHeight || 420;
+    const width = wrapElement?.clientWidth ?? canvasElement.clientWidth;
+    const height = wrapElement?.clientHeight ?? canvasElement.clientHeight;
+
+    renderer.setSize(width, height);
+    canvasElement.style.width = "100%";
+    canvasElement.style.height = "100%";
+    camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });
   }
-  resize();
-  window.addEventListener("resize", resize);
 
-  var LAYERS     = 72;    // dense ribbon — more layers = richer texture
-  var ANGLE_STEP = 0.045; // ~140 vertices per ring → smooth curve
-  var TWO_PI     = Math.PI * 2;
+  function update(time: number) {
+    program.uniforms.uTime.value = time * 0.001;
 
-  function draw() {
-    var w = canvas.width, h = canvas.height;
-    var cx = w * 0.5, cy = h * 0.5;
-    /* Base radius: ~32% of shortest side; noise & wave add ±25% on top */
-    var baseR = Math.min(w, h) * 0.30;
-    var t = frame * 0.005; // animation speed
+    currentMouse[0] += (targetMouse[0] - currentMouse[0]) * 0.085;
+    currentMouse[1] += (targetMouse[1] - currentMouse[1]) * 0.085;
+    currentAttract += (targetAttract - currentAttract) * 0.035;
+    program.uniforms.uMouse.value = currentMouse;
+    program.uniforms.uAttract.value = currentAttract;
 
-    ctx.clearRect(0, 0, w, h);
-    /* Faint white trail → motion blur effect without extra canvas */
-    ctx.fillStyle = "rgba(255,255,255,0.18)";
-    ctx.fillRect(0, 0, w, h);
+    points.rotation.y = time * 0.00008;
+    points.rotation.x = Math.sin(time * 0.0001) * 0.04;
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
-    for (var layer = 0; layer < LAYERS; layer++) {
-      var mix   = layer / (LAYERS - 1);          // 0 → 1
-      /* Each layer gets its own noise "slice" in z */
-      var tOff  = t + layer * 0.055;
-      /* Alpha: slightly higher in the mid-layers (gives volume) */
-      var alpha = 0.28 + 0.18 * Math.sin(mix * Math.PI);
+    renderer.render({ scene, camera });
 
-      ctx.beginPath();
-      ctx.strokeStyle = strokeColor(mix, alpha);
-      ctx.lineWidth   = 1.0;
-
-      var started = false;
-      for (var a = 0; a <= TWO_PI + ANGLE_STEP; a += ANGLE_STEP) {
-        /* Organic noise: sample at point on unit circle rotated by seed */
-        var nx = Math.cos(a) + seed * 0.001;
-        var ny = Math.sin(a) + seed * 0.002;
-        var nv = noise(nx, ny, tOff);
-
-        /* Wave distortion: 3 harmonics for complex shape */
-        var wave  =  Math.sin(a * 3 + t * 1.8 + layer * 0.12) * 14
-                   + Math.sin(a * 5 + t * 1.1 - layer * 0.07) *  6
-                   + Math.sin(a * 2 - t * 0.9 + layer * 0.05) *  8;
-
-        var radius = baseR + nv * 110 + wave;
-
-        /* Slight vertical squeeze → elliptical / perspective feel */
-        var x = cx + Math.cos(a) * radius;
-        var y = cy + Math.sin(a) * radius * 0.82;
-
-        if (!started) { ctx.moveTo(x, y); started = true; }
-        else           { ctx.lineTo(x, y); }
-      }
-      ctx.stroke();
+    if (!hasLoggedRender) {
+      hasLoggedRender = true;
+      console.log("Entropy Wave particles rendered via GPU");
     }
 
-    frame++;
-    requestAnimationFrame(draw);
+    requestAnimationFrame(update);
   }
 
-  requestAnimationFrame(draw);
-})();
+  resize();
+  requestAnimationFrame(() => resize());
+
+  const resizeObserver = new ResizeObserver(() => {
+    resize();
+  });
+
+  if (wrapElement) {
+    resizeObserver.observe(wrapElement);
+  }
+
+  window.addEventListener("resize", resize);
+  window.addEventListener("load", resize);
+  requestAnimationFrame(update);
+}
 </script>
+
+<style>
+.orb-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border-radius: inherit;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: none;
+}
+
+.orb-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>
