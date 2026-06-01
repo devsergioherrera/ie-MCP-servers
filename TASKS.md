@@ -29,6 +29,15 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
 
 ## Funcional — MCP de Docs
 
+- [ ] **#17 Migrar `mcp-ie-docs` a RAG** — hoy el MCP de docs accede al filesystem directamente (lectura de `.md` sin embeddings). A futuro se planea migrar a un sistema RAG para acceder a la lógica de negocio y la documentación de forma semántica, no solo por búsqueda de substring. Pasos previstos:
+  1. Agregar un vector store (pgvector en PostgreSQL local, o Chroma embebido) en un contenedor separado.
+  2. Pipeline de ingestión: leer los `.md` de `/docs/`, chunkear, embeber con un modelo local (ej. `nomic-embed-text` via Ollama) y almacenar los vectores.
+  3. Reemplazar `search_docs` (regex) por `search_docs_semantic` (similitud coseno) en `server.py`. Mantener la API MCP igual para no romper clientes.
+  4. Ampliar a más fuentes: código fuente de los sistemas IE, SPs y vistas comentadas, manuales de proceso.
+  - **Dependencia**: tarea #8 (ampliar `/docs/` con más markdowns) debe completarse primero para que el RAG tenga suficiente corpus.
+
+
+
 - [ ] **#8 Ampliar `/docs/`** con markdowns de otros sistemas:
   - `ALISTAMIENTO_IE.md` (flujo de cargue masivo + picking)
   - `DESPACHOS_IE.md` (DIA_DESPACHO, TEMP_DETALLE_DIA_X_DESPACHO)

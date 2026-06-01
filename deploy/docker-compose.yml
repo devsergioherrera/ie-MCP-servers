@@ -75,6 +75,27 @@ services:
         max-size: "10m"
         max-file: "5"
 
+  mcp-docs-api:
+    build: ../docs-mcp-servers/docs-api
+    container_name: mcp-docs-api
+    restart: unless-stopped
+    volumes:
+      - ../data-mcp-servers:/dab-configs:ro  # solo lectura: metadata de los MCP servers
+    ports:
+      - "127.0.0.1:5006:8001"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
   # ============================================================
   # Scaffolding listo, descomentar cuando se definan entidades
   # ============================================================

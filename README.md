@@ -40,6 +40,17 @@ Landing page para `http://mcp.ie` con estetica minimalista tipo Apple, animacion
 
 ---
 
+## Responsabilidades por servicio
+
+| Servicio | Para quién | Qué sirve |
+| -------- | ---------- | --------- |
+| `mcp-mssql-*` | Agentes IA | Tools para administrar las bases de datos |
+| `mcp-ie-docs` | Agentes IA | Documentación interna de negocio (los `.md`) |
+| `mcp-docs-api` | El sitio web `/docs` | Metadata de los MCP servers desde los configs |
+| `mcp-ui` | Desarrolladores humanos | La interfaz visual en `http://mcp.ie` |
+
+---
+
 ## Que expone
 
 | MCP Server       | Motor / Origen                 | Ruta publica (Nginx)            | Estado       |
