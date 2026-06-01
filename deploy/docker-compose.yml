@@ -77,7 +77,8 @@ services:
     container_name: mcp-docs-api
     restart: unless-stopped
     volumes:
-      - ../data-mcp-servers:/dab-configs:ro  # solo lectura: metadata de los MCP servers
+      - ../data-mcp-servers:/dab-configs:ro   # DAB servers (dab-config.json)
+      - ../docs-mcp-servers:/docs-servers:ro  # Custom servers (server-meta.json)
     ports:
       - "127.0.0.1:5009:8001"
     networks: [mcp_net]

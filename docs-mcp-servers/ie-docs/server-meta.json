@@ -1,0 +1,46 @@
+{
+  "id": "ie-docs",
+  "label": "MCP IE Docs",
+  "type": "custom",
+  "description": "MCP de documentación viva de Integral de Empaques. Expone los markdowns de /docs como Resources y ofrece tools de lectura, búsqueda y edición. Sin RAG, sin embeddings: acceso directo al filesystem. Diseñado para que los agentes de IA consulten y editen la lógica de negocio documentada.",
+  "readonly": false,
+  "tools": {
+    "list_docs": true,
+    "read_doc": true,
+    "search_docs": true,
+    "write_doc": true,
+    "append_doc": true
+  },
+  "entities": [
+    {
+      "name": "list_docs",
+      "description": "Lista todos los archivos .md disponibles en el directorio de docs.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    },
+    {
+      "name": "read_doc",
+      "description": "Devuelve el contenido completo de un archivo .md por nombre.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    },
+    {
+      "name": "search_docs",
+      "description": "Busca un query (case-insensitive) en todos los .md. Devuelve [{file, line, snippet}].",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    },
+    {
+      "name": "write_doc",
+      "description": "Sobrescribe (o crea) un archivo .md. Crea backup .md.bak si ya existía.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    },
+    {
+      "name": "append_doc",
+      "description": "Anexa contenido al final de un archivo .md existente.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    }
+  ]
+}
