@@ -3,88 +3,112 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Info | MCP Server IE">
-  <div class="docs-page">
+  <div class="info-page">
 
-    <!-- ── Intro ── -->
-    <section class="docs-intro">
-      <p class="docs-intro__eyebrow">INTEGRAL DE EMPAQUES</p>
-      <h1 class="docs-intro__title">MCP Servers</h1>
-      <p class="docs-intro__sub">
-        Acceso estructurado a las bases de datos y documentación interna de IE
-        a través del <strong>Model Context Protocol</strong>.
-        Diseñado para agentes de IA y desarrolladores.
+    <!-- ── Hero search ── -->
+    <section class="search-hero">
+      <p class="search-hero__eyebrow">INTEGRAL DE EMPAQUES</p>
+      <h1 class="search-hero__title">MCP Servers</h1>
+      <p class="search-hero__sub">
+        Acceso estructurado a BDs y documentación interna
+        vía <strong>Model Context Protocol</strong>.
       </p>
-      <div class="docs-intro__chips">
-        <span class="docs-chip docs-chip--blue">SQL Server</span>
-        <span class="docs-chip docs-chip--green">Solo lectura</span>
-        <span class="docs-chip docs-chip--gray">LAN-only</span>
+
+      <div class="search-wrap">
+        <div class="search-box" id="search-box">
+          <svg class="search-box__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="8.5" cy="8.5" r="5.25" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <input
+            id="search-input"
+            class="search-box__input"
+            type="search"
+            placeholder="Busca un server, entidad o tool…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <kbd class="search-box__kbd" id="search-kbd">ESC</kbd>
+        </div>
+        <p class="search-hint" id="search-hint" style="display:none">
+          <span id="search-count">0</span> resultados
+        </p>
       </div>
     </section>
 
-    <!-- ── Conexión rápida ── -->
-    <section class="docs-section">
-      <h2 class="docs-section__title">Cómo conectarse</h2>
-      <p class="docs-section__text">
-        Agrega los servers a tu cliente MCP (Claude Desktop, Claude Code, etc.):
-      </p>
-      <pre class="docs-code">{`{
+    <!-- ── Servers grid ── -->
+    <section class="servers-section" id="servers-section">
+      <!-- Loading -->
+      <div class="servers-loading" id="servers-loading">
+        <span class="loading-dot"></span>
+        <span class="loading-dot"></span>
+        <span class="loading-dot"></span>
+        <span class="loading-label">Cargando configuración…</span>
+      </div>
+
+      <!-- Error -->
+      <div class="servers-error" id="servers-error" style="display:none">
+        <p class="servers-error__msg" id="servers-error-msg">No se pudo cargar la metadata.</p>
+        <p class="servers-error__hint">
+          Verifica: <code>docker compose ps mcp-docs-api</code>
+        </p>
+      </div>
+
+      <!-- Empty search -->
+      <div class="servers-empty" id="servers-empty" style="display:none">
+        <svg viewBox="0 0 40 40" fill="none" class="servers-empty__icon" aria-hidden="true">
+          <circle cx="17" cy="17" r="10" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M25 25L34 34" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M13 17h8M17 13v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+        </svg>
+        <p>Sin resultados para "<span id="empty-query"></span>"</p>
+      </div>
+
+      <!-- Grid -->
+      <div class="servers-grid" id="servers-grid"></div>
+    </section>
+
+    <!-- ── Conexión + Troubleshooting ── -->
+    <section class="info-footer" id="info-footer" style="display:none">
+      <details class="info-details">
+        <summary class="info-details__summary">Cómo conectarse</summary>
+        <div class="info-details__body">
+          <pre class="docs-code">{`{
   "mcpServers": {
-    "ie-mssql": { "url": "http://mcp.ie/mssql/mcp" },
+    "ie-mssql":   { "url": "http://mcp.ie/mssql/mcp" },
     "ie-monitor": { "url": "http://mcp.ie/monitor/mcp" },
-    "ie-docs": { "url": "http://mcp.ie/docs/mcp" }
+    "ie-docs":    { "url": "http://mcp.ie/docs/mcp" }
   }
 }`}</pre>
-    </section>
-
-    <!-- ── Servers (dinámico) ── -->
-    <section class="docs-section">
-      <h2 class="docs-section__title">Servers disponibles</h2>
-      <div id="servers-grid" class="servers-grid">
-        <div class="servers-loading" id="servers-loading">
-          <span class="loading-dot"></span>
-          <span class="loading-dot"></span>
-          <span class="loading-dot"></span>
-          <span class="loading-label">Cargando configuración...</span>
         </div>
-        <div class="servers-error" id="servers-error" style="display:none">
-          <p class="servers-error__msg" id="servers-error-msg">
-            No se pudo cargar la metadata de los servers.
-          </p>
-          <p class="servers-error__hint">
-            Verifica que el servicio <code>mcp-docs-api</code> está corriendo:
-            <code>docker compose ps mcp-docs-api</code>
-          </p>
-        </div>
-      </div>
-    </section>
+      </details>
 
-    <!-- ── Troubleshooting ── -->
-    <section class="docs-section docs-section--muted">
-      <h2 class="docs-section__title">Troubleshooting</h2>
-      <ul class="docs-list">
-        <li>
-          <strong>Los servers no aparecen:</strong> la API lee los
-          <code>dab-config.json</code> del repositorio vía volumen Docker
-          read-only montado en <code>/dab-configs</code>. Verifica con
-          <code>docker compose ps mcp-docs-api</code>.
-        </li>
-        <li>
-          <strong>Una entidad nueva no aparece:</strong> reconstruye el
-          contenedor del MCP correspondiente:
-          <code>docker compose up -d --build mcp-mssql-main</code>.
-          El frontend no necesita rebuild.
-        </li>
-        <li>
-          <strong>Los datos de conexión nunca son expuestos</strong> por esta
-          API — ni connection strings, ni nombres de tablas internas, ni
-          usuarios de BD.
-        </li>
-        <li>
-          <strong>Documentación interna (para agentes):</strong>{" "}
-          <a href="http://mcp.ie/docs/mcp" class="docs-link">mcp.ie/docs/mcp</a> —
-          markdowns de lógica de negocio accesibles vía MCP.
-        </li>
-      </ul>
+      <details class="info-details">
+        <summary class="info-details__summary">Troubleshooting</summary>
+        <div class="info-details__body">
+          <ul class="docs-list">
+            <li>
+              <strong>Los servers no aparecen:</strong> la API lee
+              <code>dab-config.json</code> desde el volumen
+              <code>/dab-configs</code>. Verifica con
+              <code>docker compose ps mcp-docs-api</code>.
+            </li>
+            <li>
+              <strong>Una entidad nueva no aparece:</strong> reconstruye el
+              contenedor: <code>docker compose up -d --build mcp-mssql-main</code>.
+              El frontend no necesita rebuild.
+            </li>
+            <li>
+              <strong>Connection strings y tablas internas nunca son expuestos</strong>
+              por esta API.
+            </li>
+            <li>
+              <strong>Docs para agentes:</strong>{" "}
+              <a href="http://mcp.ie/docs/mcp" class="docs-link">mcp.ie/docs/mcp</a>
+            </li>
+          </ul>
+        </div>
+      </details>
     </section>
 
   </div>
@@ -92,159 +116,209 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 
 <script is:inline>
 (function () {
-  var TOOLS_LABELS = {
-    read_records: "read",
-    aggregate_records: "aggregate",
-    create_record: "create",
-    update_record: "update",
-    delete_record: "delete",
-    execute_entity: "execute",
-    describe_entities: "describe",
+  /* ─── Helpers ─────────────────────────────────────────────── */
+  function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function highlight(text, query) {
+    if (!query) return document.createTextNode(text);
+    var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    var span = document.createElement('span');
+    span.innerHTML = text.replace(re, '<mark class="hl">$1</mark>');
+    return span;
+  }
+
+  /* ─── Build card ───────────────────────────────────────────── */
+  var TOOL_LABELS = {
+    read_records: 'read', aggregate_records: 'aggregate',
+    create_record: 'create', update_record: 'update',
+    delete_record: 'delete', execute_entity: 'execute',
   };
 
-  function badge(text, active) {
-    var el = document.createElement("span");
-    el.className = "tool-badge" + (active ? " tool-badge--on" : " tool-badge--off");
-    el.textContent = text;
-    return el;
-  }
+  function buildCard(server, query) {
+    var card = el('div', 'server-card' + (server.readonly ? '' : ' server-card--rw'));
+    card.dataset.id = server.id;
 
-  function entityPill(entity) {
-    var pill = document.createElement("div");
-    pill.className = "entity-pill";
+    /* header */
+    var header = el('div', 'server-card__header');
 
-    var name = document.createElement("span");
-    name.className = "entity-pill__name";
-    name.textContent = entity.name;
+    var titleRow = el('div', 'server-card__title-row');
+    var titleEl = el('h3', 'server-card__title');
+    titleEl.appendChild(highlight(server.label, query));
+    var badge = el('span', 'server-card__badge ' + (server.readonly ? 'server-card__badge--ro' : 'server-card__badge--rw'),
+      server.readonly ? 'solo lectura' : 'lectura + escritura');
+    titleRow.appendChild(titleEl);
+    titleRow.appendChild(badge);
 
-    var type = document.createElement("span");
-    type.className = "entity-pill__type entity-pill__type--" + (entity.type || "table");
-    type.textContent = entity.type || "table";
+    var descEl = el('p', 'server-card__desc');
+    descEl.appendChild(highlight(server.description || '', query));
 
-    pill.appendChild(name);
-    pill.appendChild(type);
-
-    if (entity.description) {
-      pill.title = entity.description;
-    }
-
-    return pill;
-  }
-
-  function buildCard(server) {
-    var card = document.createElement("div");
-    card.className = "server-card" + (server.readonly ? " server-card--readonly" : " server-card--rw");
-
-    // Header
-    var header = document.createElement("div");
-    header.className = "server-card__header";
-
-    var titleRow = document.createElement("div");
-    titleRow.className = "server-card__title-row";
-
-    var title = document.createElement("h3");
-    title.className = "server-card__title";
-    title.textContent = server.label;
-
-    var badge_rw = document.createElement("span");
-    badge_rw.className = "server-card__badge " + (server.readonly ? "server-card__badge--ro" : "server-card__badge--rw");
-    badge_rw.textContent = server.readonly ? "solo lectura" : "lectura + escritura";
-
-    titleRow.appendChild(title);
-    titleRow.appendChild(badge_rw);
-
-    var desc = document.createElement("p");
-    desc.className = "server-card__desc";
-    desc.textContent = server.description || "";
-
-    var url = document.createElement("p");
-    url.className = "server-card__url";
-    var urlLink = document.createElement("a");
-    urlLink.className = "docs-link";
-    urlLink.href = "http://mcp.ie/" + server.id + "/mcp";
-    urlLink.textContent = "mcp.ie/" + server.id + "/mcp";
-    url.appendChild(urlLink);
+    var urlEl = el('p', 'server-card__url');
+    var urlLink = el('a', 'docs-link');
+    urlLink.href = 'http://mcp.ie/' + server.id + '/mcp';
+    urlLink.textContent = 'mcp.ie/' + server.id + '/mcp';
+    urlEl.appendChild(urlLink);
 
     header.appendChild(titleRow);
-    header.appendChild(desc);
-    header.appendChild(url);
+    header.appendChild(descEl);
+    header.appendChild(urlEl);
 
-    // Tools
-    var toolsRow = document.createElement("div");
-    toolsRow.className = "server-card__tools";
-    var toolsLabel = document.createElement("span");
-    toolsLabel.className = "server-card__tools-label";
-    toolsLabel.textContent = "Tools:";
-    toolsRow.appendChild(toolsLabel);
-
+    /* tools */
+    var toolsRow = el('div', 'server-card__tools');
+    toolsRow.appendChild(el('span', 'server-card__tools-label', 'Tools:'));
     if (server.tools) {
-      Object.entries(server.tools).forEach(function(entry) {
-        var key = entry[0];
-        var active = entry[1];
-        if (key === "describe_entities") return; // siempre activo, no hace ruido
-        var label = TOOLS_LABELS[key] || key;
-        toolsRow.appendChild(badge(label, active));
+      Object.entries(server.tools).forEach(function (kv) {
+        var key = kv[0], active = kv[1];
+        if (key === 'describe_entities') return;
+        var label = TOOL_LABELS[key] || key;
+        var b = el('span', 'tool-badge ' + (active ? 'tool-badge--on' : 'tool-badge--off'), label);
+        toolsRow.appendChild(b);
       });
     }
 
-    // Entities
-    var entitiesSection = document.createElement("div");
-    entitiesSection.className = "server-card__entities";
-
-    var entLabel = document.createElement("p");
-    entLabel.className = "server-card__entities-label";
-    entLabel.textContent = "Entidades (" + (server.entities ? server.entities.length : 0) + "):";
-    entitiesSection.appendChild(entLabel);
-
-    var pillsWrap = document.createElement("div");
-    pillsWrap.className = "entity-pills";
+    /* entities */
+    var entSec = el('div', 'server-card__entities');
+    var entLabel = el('p', 'server-card__entities-label',
+      'Entidades (' + (server.entities ? server.entities.length : 0) + '):');
+    var pillsWrap = el('div', 'entity-pills');
 
     if (server.entities && server.entities.length) {
       server.entities.forEach(function (e) {
-        pillsWrap.appendChild(entityPill(e));
+        var pill = el('div', 'entity-pill');
+        pill.dataset.name = e.name.toLowerCase();
+        pill.dataset.desc = (e.description || '').toLowerCase();
+        if (e.description) pill.title = e.description;
+
+        var nameSpan = el('span', 'entity-pill__name');
+        nameSpan.appendChild(highlight(e.name, query));
+        var typeSpan = el('span', 'entity-pill__type entity-pill__type--' + (e.type || 'table'), e.type || 'table');
+        pill.appendChild(nameSpan);
+        pill.appendChild(typeSpan);
+        pillsWrap.appendChild(pill);
       });
     }
-    entitiesSection.appendChild(pillsWrap);
+
+    entSec.appendChild(entLabel);
+    entSec.appendChild(pillsWrap);
 
     card.appendChild(header);
     card.appendChild(toolsRow);
-    card.appendChild(entitiesSection);
+    card.appendChild(entSec);
     return card;
   }
 
-  function render(data) {
-    var grid = document.getElementById("servers-grid");
-    document.getElementById("servers-loading").style.display = "none";
+  /* ─── Filter logic ─────────────────────────────────────────── */
+  var allServers = [];
 
-    if (!data.servers || data.servers.length === 0) {
-      var empty = document.createElement("p");
-      empty.className = "servers-empty";
-      empty.textContent = "No se encontraron servers configurados.";
-      grid.appendChild(empty);
+  function applyFilter(query) {
+    var q = query.trim().toLowerCase();
+    var grid = qs('#servers-grid');
+    var hint = qs('#search-hint');
+    var countEl = qs('#search-count');
+    var emptyEl = qs('#servers-empty');
+
+    var visible = 0;
+
+    Array.from(grid.querySelectorAll('.server-card')).forEach(function (card) {
+      var id = card.dataset.id;
+      var server = allServers.find(function (s) { return s.id === id; });
+      if (!server) return;
+
+      var matchServer = !q
+        || server.id.toLowerCase().includes(q)
+        || server.label.toLowerCase().includes(q)
+        || (server.description || '').toLowerCase().includes(q);
+
+      /* also check entities */
+      var matchEntity = !matchServer && q && server.entities && server.entities.some(function (e) {
+        return e.name.toLowerCase().includes(q) || (e.description || '').toLowerCase().includes(q);
+      });
+
+      var match = matchServer || matchEntity;
+
+      if (match) {
+        card.classList.remove('card--hidden');
+        visible++;
+
+        /* filter entity pills */
+        Array.from(card.querySelectorAll('.entity-pill')).forEach(function (pill) {
+          if (!q || matchServer) {
+            pill.classList.remove('pill--hidden');
+          } else {
+            var nm = pill.dataset.name || '';
+            var ds = pill.dataset.desc || '';
+            var pillMatch = nm.includes(q) || ds.includes(q);
+            pill.classList.toggle('pill--hidden', !pillMatch);
+          }
+        });
+      } else {
+        card.classList.add('card--hidden');
+      }
+    });
+
+    if (q) {
+      hint.style.display = 'block';
+      countEl.textContent = visible;
+      qs('#empty-query').textContent = query.trim();
+      emptyEl.style.display = visible === 0 ? 'flex' : 'none';
+    } else {
+      hint.style.display = 'none';
+      emptyEl.style.display = 'none';
+    }
+  }
+
+  /* ─── Render ───────────────────────────────────────────────── */
+  function render(data) {
+    qs('#servers-loading').style.display = 'none';
+    allServers = data.servers || [];
+
+    if (!allServers.length) {
+      qs('#servers-empty').style.display = 'flex';
       return;
     }
 
-    data.servers.forEach(function (server) {
-      grid.appendChild(buildCard(server));
+    var grid = qs('#servers-grid');
+    allServers.forEach(function (s) { grid.appendChild(buildCard(s, '')); });
+
+    qs('#info-footer').style.display = 'block';
+
+    /* Search wiring */
+    var input = qs('#search-input');
+    var kbdEl = qs('#search-kbd');
+
+    input.addEventListener('input', function () {
+      applyFilter(input.value);
+      kbdEl.style.display = input.value ? 'none' : '';
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { input.value = ''; applyFilter(''); kbdEl.style.display = ''; input.blur(); }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === '/' || (e.metaKey && e.key === 'k')) && document.activeElement !== input) {
+        e.preventDefault(); input.focus();
+      }
     });
   }
 
   function showError(msg) {
-    document.getElementById("servers-loading").style.display = "none";
-    var errEl = document.getElementById("servers-error");
-    errEl.style.display = "block";
-    document.getElementById("servers-error-msg").textContent = msg || "Error desconocido.";
+    qs('#servers-loading').style.display = 'none';
+    var err = qs('#servers-error');
+    err.style.display = 'block';
+    qs('#servers-error-msg').textContent = msg || 'Error desconocido.';
   }
 
-  fetch("/docs/api/servers")
-    .then(function (res) {
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    })
+  fetch('/docs/api/servers')
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(render)
-    .catch(function (err) {
-      showError("No se pudo cargar la metadata: " + err.message);
-    });
+    .catch(function (e) { showError('No se pudo cargar: ' + e.message); });
 })();
 </script>
 </BaseLayout>
