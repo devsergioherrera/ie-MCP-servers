@@ -1,7 +1,7 @@
 ---
 const { pathname } = Astro.url;
 const isHome = pathname === "/";
-const isDocs = pathname.startsWith("/docs");
+const isInfo = pathname.startsWith("/info");
 ---
 <!--
   Tesla-style navbar: logo izq | links centrados (absolutos) | slot derecho vacío.
@@ -18,11 +18,11 @@ const isDocs = pathname.startsWith("/docs");
   <!-- Links centrados con position absolute -->
   <div class="navbar__links">
     <a class={isHome ? "active" : ""} href="/">Home</a>
-    <a class={isDocs ? "active" : ""} href="/docs">Docs</a>
+    <a class={isInfo ? "active" : ""} href="/info">Info</a>
   </div>
 
   <!-- Slot derecho — balanceo visual -->
   <div class="navbar__right">
-    <a class="navbar__doc-btn" href="/docs">Documentation</a>
+    <a class="navbar__doc-btn" href="/info">Info</a>
   </div>
 </nav>

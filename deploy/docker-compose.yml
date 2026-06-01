@@ -1,5 +1,19 @@
 name: ie-mcp
 
+# ============================================================
+# Mapa de puertos (secuencial, reserva hasta 5010):
+#   5001  mcp-mssql-main      SQL Server SIE + EMPAQUE(PR), solo lectura
+#   5002  mcp-mssql-monitor   SQL Server IE_MONITOR, lectura+escritura
+#   5003  mcp-ie-docs         MCP Python de markdowns (logica de negocio)
+#   5004  (reservado — proximo MCP server de datos)
+#   5005  (reservado)
+#   5006  mcp-mysql-glpi      (scaffolding — descomentar cuando este listo)
+#   5007  mcp-pg-op           (scaffolding — descomentar cuando este listo)
+#   5008  (reservado)
+#   5009  mcp-docs-api        FastAPI metadata de MCP servers (uso interno UI)
+#   5010  mcp-ui              UI estatica Astro (landing + /info)
+# ============================================================
+
 services:
   mcp-mssql-main:
     build: ../data-mcp-servers/mssql
@@ -9,17 +23,13 @@ services:
       MSSQL_SIE_CONN: ${MSSQL_SIE_CONN}
       MSSQL_EMPAQUE_CONN: ${MSSQL_EMPAQUE_CONN}
     ports:
-      # Solo loopback del host: Nginx (nativo en linux.ie) lo alcanza por 127.0.0.1
       - "127.0.0.1:5001:5000"
     networks: [mcp_net]
-    # DAB persiste logs en stdout; Docker los retiene con json-file driver
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "5"
-    # No healthcheck declarado: la imagen DAB es chiseled (sin shell ni curl).
-    # restart: unless-stopped basta para reciclar si crashea.
 
   mcp-mssql-monitor:
     build: ../data-mcp-servers/mssql-monitor
@@ -28,7 +38,7 @@ services:
     environment:
       MSSQL_MONITOR_CONN: ${MSSQL_MONITOR_CONN}
     ports:
-      - "127.0.0.1:5005:5000"
+      - "127.0.0.1:5002:5000"
     networks: [mcp_net]
     logging:
       driver: json-file
@@ -41,10 +51,10 @@ services:
     container_name: mcp-ie-docs
     restart: unless-stopped
     volumes:
-      - ../docs:/docs:rw # rw: el MCP puede editar markdowns
-      - ../logs:/logs:rw # logs estructurados JSON persistidos
+      - ../docs:/docs:rw  # rw: el MCP puede editar markdowns
+      - ../logs:/logs:rw  # logs estructurados JSON persistidos
     ports:
-      - "127.0.0.1:5004:8000"
+      - "127.0.0.1:5003:8000"
     networks: [mcp_net]
     logging:
       driver: json-file
@@ -57,6 +67,27 @@ services:
         - "python"
         - "-c"
         - "import socket,sys; s=socket.socket(); s.settimeout(3); s.connect(('127.0.0.1', 8000)); s.close()"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  mcp-docs-api:
+    build: ../docs-mcp-servers/docs-api
+    container_name: mcp-docs-api
+    restart: unless-stopped
+    volumes:
+      - ../data-mcp-servers:/dab-configs:ro  # solo lectura: metadata de los MCP servers
+    ports:
+      - "127.0.0.1:5009:8001"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
       interval: 30s
       timeout: 5s
       start_period: 10s
@@ -75,39 +106,22 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  mcp-docs-api:
-    build: ../docs-mcp-servers/docs-api
-    container_name: mcp-docs-api
-    restart: unless-stopped
-    volumes:
-      - ../data-mcp-servers:/dab-configs:ro  # solo lectura: metadata de los MCP servers
-    ports:
-      - "127.0.0.1:5006:8001"
-    networks: [mcp_net]
-    logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "3"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
-      interval: 30s
-      timeout: 5s
-      start_period: 10s
-      retries: 3
-
   # ============================================================
   # Scaffolding listo, descomentar cuando se definan entidades
   # ============================================================
   # mcp-mysql-glpi:
   #   build: ../data-mcp-servers/mysql-glpi
   #   container_name: mcp-mysql-glpi
-  #   ...
+  #   ports:
+  #     - "127.0.0.1:5006:5000"
+  #   networks: [mcp_net]
   #
   # mcp-pg-op:
   #   build: ../data-mcp-servers/postgres-openproject
   #   container_name: mcp-pg-op
-  #   ...
+  #   ports:
+  #     - "127.0.0.1:5007:5000"
+  #   networks: [mcp_net]
 
 networks:
   mcp_net:
