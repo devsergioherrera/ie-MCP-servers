@@ -239,8 +239,11 @@ def describe_entity_schema(entity: str) -> dict:
                     full,
                 )
                 ident = {r[0] for r in cur.fetchall()}
+                # sys.partitions: solo requiere visibilidad de metadata (que
+                # mcp_reader ya tiene por su SELECT), a diferencia de
+                # sys.dm_db_partition_stats que exige VIEW DATABASE PERFORMANCE STATE.
                 cur.execute(
-                    "SELECT SUM(p.row_count) FROM sys.dm_db_partition_stats p "
+                    "SELECT SUM(p.rows) FROM sys.partitions p "
                     "WHERE p.object_id = OBJECT_ID(?) AND p.index_id IN (0, 1)",
                     full,
                 )
