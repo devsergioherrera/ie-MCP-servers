@@ -1,0 +1,9 @@
+[project]
+name = "ie-mssql-explorer-mcp"
+version = "0.1.0"
+description = "MCP Server para explorar el SQL Server de Integral de Empaques (read-only) — introspeccion de esquema y capa de extension que DAB no alcanza"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.2.0",
+    "pyodbc>=5.2.0",
+]

@@ -5,7 +5,7 @@ name: ie-mcp
 #   5001  mcp-mssql-main      SQL Server SIE + EMPAQUE(PR), solo lectura
 #   5002  mcp-mssql-monitor   SQL Server IE_MONITOR, lectura+escritura
 #   5003  mcp-ie-docs         MCP Python de markdowns (logica de negocio)
-#   5004  (reservado — proximo MCP server de datos)
+#   5004  mcp-mssql-explorer  MCP Python para explorar SQL (esquema, read-only)
 #   5005  (reservado)
 #   5006  mcp-mysql-glpi      (scaffolding — descomentar cuando este listo)
 #   5007  mcp-pg-op           (scaffolding — descomentar cuando este listo)
@@ -39,6 +39,24 @@ services:
       MSSQL_MONITOR_CONN: ${MSSQL_MONITOR_CONN}
     ports:
       - "127.0.0.1:5002:5000"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mcp-mssql-explorer:
+    build: ../data-mcp-servers/mssql-explorer
+    container_name: mcp-mssql-explorer
+    restart: unless-stopped
+    environment:
+      MSSQL_SIE_CONN: ${MSSQL_SIE_CONN}
+      MSSQL_EMPAQUE_CONN: ${MSSQL_EMPAQUE_CONN}
+    volumes:
+      - ../data-mcp-servers/mssql:/dab-configs:ro  # whitelist desde el config de DAB
+    ports:
+      - "127.0.0.1:5004:8000"
     networks: [mcp_net]
     logging:
       driver: json-file

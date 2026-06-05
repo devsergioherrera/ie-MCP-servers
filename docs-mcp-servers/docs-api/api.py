@@ -158,12 +158,17 @@ def list_servers() -> dict:
     """Devuelve metadata pública de todos los MCP servers."""
     servers: list[dict] = []
 
-    # 1. DAB servers (data-mcp-servers/)
+    # 1. data-mcp-servers/ — DAB (dab-config.json) o custom (server-meta.json)
     if DAB_CONFIGS_DIR.exists():
         for config_dir in sorted(DAB_CONFIGS_DIR.iterdir()):
             if not config_dir.is_dir():
                 continue
+            # DAB tiene prioridad; si no hay dab-config.json, probar server-meta.json
             server = _parse_dab_server(config_dir.name, config_dir)
+            if server is None:
+                meta_path = config_dir / "server-meta.json"
+                if meta_path.exists():
+                    server = _parse_custom_server(config_dir.name, meta_path)
             if server is not None:
                 servers.append(server)
 

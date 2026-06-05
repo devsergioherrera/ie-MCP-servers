@@ -8,6 +8,10 @@
       "type": "http",
       "url": "http://mcp.ie/monitor/mcp"
     },
+    "ie-mssql-explorer": {
+      "type": "http",
+      "url": "http://mcp.ie/explorer/mcp"
+    },
     "ie-docs": {
       "type": "http",
       "url": "http://mcp.ie/docs/mcp"

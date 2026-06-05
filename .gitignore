@@ -41,3 +41,6 @@ mcp-ui/.astro/
 
 # CodeGraph DB (generado localmente, no va al repo)
 .codegraph/
+
+# Playwright MCP — screenshots/logs de debug
+.playwright-mcp/

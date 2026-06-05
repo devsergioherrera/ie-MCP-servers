@@ -1,0 +1,25 @@
+{
+  "id": "ie-mssql-explorer",
+  "label": "MCP MSSQL Explorer",
+  "type": "custom",
+  "readonly": true,
+  "description": "Server para EXPLORAR el SQL Server de IE (solo lectura), complementario al MCP de datos en /mssql/mcp. Cubre lo que DAB no puede: expone la metadata de columnas que describe_entities no devuelve. Úsalo ANTES de consultar datos para conocer la estructura de una entidad y los valores posibles de sus columnas. Estructura lista para sumar tools de cross-database, búsqueda y lógica de negocio.",
+  "tools": {
+    "describe_entity_schema": true,
+    "get_distinct_values": true
+  },
+  "entities": [
+    {
+      "name": "describe_entity_schema",
+      "description": "Devuelve el esquema real de una entidad: columnas (nombre, tipo SQL, longitud, precisión/escala, nullability), clave primaria, columnas identity y conteo aproximado de filas. Lee INFORMATION_SCHEMA — no expone datos.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    },
+    {
+      "name": "get_distinct_values",
+      "description": "Lista los valores distintos de una columna con su frecuencia, ordenados de mayor a menor. Útil para descubrir el dominio real de una columna (estados, tipos, áreas) antes de filtrar. Cap duro de 500 valores.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    }
+  ]
+}
