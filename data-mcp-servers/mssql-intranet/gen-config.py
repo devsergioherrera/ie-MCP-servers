@@ -23,6 +23,12 @@ import pyodbc
 ODBC_DRIVER = os.environ.get("ODBC_DRIVER", "ODBC Driver 18 for SQL Server")
 CONN_ENV = "MSSQL_INTRANET_CONN"
 
+# Tablas que NUNCA se exponen via MCP (comparacion case-insensitive por nombre):
+#  - Usuarios: contiene ContrasenaHash + Salt (credenciales) -> riesgo Ley 1273.
+#    mcp.ie no tiene auth (confianza-LAN); exponerlas permite cracking offline.
+#  - __EFMigrationsHistory / sysdiagrams: basura de sistema (EF Core / SSMS).
+EXCLUDE_TABLES = {"usuarios", "__efmigrationshistory", "sysdiagrams"}
+
 
 def ado_to_odbc(ado: str) -> str:
     parts = {}
@@ -89,6 +95,9 @@ def main() -> None:
     used_aliases: set[str] = set()
 
     for table_name, table_type in objects:
+        if table_name.lower() in EXCLUDE_TABLES:
+            sys.stderr.write(f"Excluida (denylist): {table_name}\n")
+            continue
         alias = pascal(table_name)
         base = alias
         i = 2
