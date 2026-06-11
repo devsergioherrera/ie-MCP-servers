@@ -24,10 +24,14 @@ ODBC_DRIVER = os.environ.get("ODBC_DRIVER", "ODBC Driver 18 for SQL Server")
 CONN_ENV = "MSSQL_INTRANET_CONN"
 
 # Tablas que NUNCA se exponen via MCP (comparacion case-insensitive por nombre):
-#  - Usuarios: contiene ContrasenaHash + Salt (credenciales) -> riesgo Ley 1273.
-#    mcp.ie no tiene auth (confianza-LAN); exponerlas permite cracking offline.
 #  - __EFMigrationsHistory / sysdiagrams: basura de sistema (EF Core / SSMS).
-EXCLUDE_TABLES = {"usuarios", "__efmigrationshistory", "sysdiagrams"}
+EXCLUDE_TABLES = {"__efmigrationshistory", "sysdiagrams"}
+
+# Columnas sensibles a OCULTAR por tabla (case-insensitive en la key de tabla).
+# La tabla SI se expone (read-only) pero estas columnas nunca salen por el MCP,
+# usando field-level exclude de DAB. Critico: credenciales (Ley 1273).
+#  - Usuarios: ContrasenaHash + Salt permitirian cracking offline.
+SENSITIVE_FIELDS = {"usuarios": ["ContrasenaHash", "Salt"]}
 
 
 def ado_to_odbc(ado: str) -> str:
@@ -120,9 +124,17 @@ def main() -> None:
             if first:
                 source["key-fields"] = [first[0]]
 
+        # Permiso de lectura: si la tabla tiene columnas sensibles, usar la
+        # forma detallada con field-level exclude; si no, el "read" simple.
+        sensitive = SENSITIVE_FIELDS.get(table_name.lower())
+        if sensitive:
+            read_action = {"action": "read", "fields": {"exclude": sensitive}}
+        else:
+            read_action = "read"
+
         entities[alias] = {
             "source": source,
-            "permissions": [{"role": "anonymous", "actions": ["read"]}],
+            "permissions": [{"role": "anonymous", "actions": [read_action]}],
             "description": descriptions.get(
                 table_name,
                 f"BD INTRANET (192.168.50.86), {table_type.lower()} dbo.{table_name}. "
