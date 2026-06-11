@@ -6,7 +6,7 @@ name: ie-mcp
 #   5002  mcp-mssql-monitor   SQL Server IE_MONITOR, lectura+escritura
 #   5003  mcp-ie-docs         MCP Python de markdowns (logica de negocio)
 #   5004  mcp-mssql-explorer  MCP Python para explorar SQL (esquema, read-only)
-#   5005  (reservado)
+#   5005  mcp-mssql-intranet  SQL Server INTRANET (192.168.50.86), solo lectura
 #   5006  mcp-mysql-glpi      (scaffolding — descomentar cuando este listo)
 #   5007  mcp-pg-op           (scaffolding — descomentar cuando este listo)
 #   5008  (reservado)
@@ -39,6 +39,21 @@ services:
       MSSQL_MONITOR_CONN: ${MSSQL_MONITOR_CONN}
     ports:
       - "127.0.0.1:5002:5000"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mcp-mssql-intranet:
+    build: ../data-mcp-servers/mssql-intranet
+    container_name: mcp-mssql-intranet
+    restart: unless-stopped
+    environment:
+      MSSQL_INTRANET_CONN: ${MSSQL_INTRANET_CONN}
+    ports:
+      - "127.0.0.1:5005:5000"
     networks: [mcp_net]
     logging:
       driver: json-file

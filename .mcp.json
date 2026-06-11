@@ -12,6 +12,10 @@
       "type": "http",
       "url": "http://mcp.ie/explorer/mcp"
     },
+    "ie-mssql-intranet": {
+      "type": "http",
+      "url": "http://mcp.ie/intranet/mcp"
+    },
     "ie-docs": {
       "type": "http",
       "url": "http://mcp.ie/docs/mcp"
