@@ -1,4 +1,4 @@
-﻿# 📦 Base de Datos - Sistema Logístico IE
+# 📦 Base de Datos - Sistema Logístico IE
 
 > Documentación completa de las tablas utilizadas en el sistema de alistamiento y despacho de camiones.
 
@@ -14,18 +14,9 @@
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
-| `COD_CAMION` | BIGINT (PK) | Código único del camión |
-| `PLACAS` | VARCHAR | Placas del vehículo (ej: ABC123) |
+| `COD_CAMION` | BIGINT (PK) | Código único del camión (vehículo real) |
+| `PLACAS` | VARCHAR | Placas del vehículo (ej: TJW570) |
 | `TIPOLOGIA` | TINYINT | Tipo de camión (capacidad/tamaño) |
-
-**Ejemplos**:
-```sql
--- Camión sencillo
-COD_CAMION: 1, PLACAS: 'ABC123', TIPOLOGIA: 1
-
--- Camión doble troque
-COD_CAMION: 2, PLACAS: 'XYZ789', TIPOLOGIA: 2
-```
 
 ---
 
@@ -42,15 +33,6 @@ COD_CAMION: 2, PLACAS: 'XYZ789', TIPOLOGIA: 2
 | `TELEFONO` | VARCHAR | Número de contacto |
 | `CI` | VARCHAR | Cédula de identidad |
 
-**Ejemplos**:
-```sql
--- Conductor activo
-COD_CONDUCTOR: 101, NOMBRES: 'Juan Pérez', TELEFONO: '3001234567', CI: '12345678'
-
--- Conductor de planta
-COD_CONDUCTOR: 102, NOMBRES: 'María González', TELEFONO: '3009876543', CI: '87654321'
-```
-
 ---
 
 ### 3. `CAMION_X_DIA` ⭐
@@ -62,10 +44,11 @@ COD_CONDUCTOR: 102, NOMBRES: 'María González', TELEFONO: '3009876543', CI: '87
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
 | `COD_CAMION` | BIGINT (PK) | ID único del despacho programado |
-| `FECHA` | DATE | Fecha del despacho |
+| `FECHA` | DATETIME | Fecha de referencia de la programación (NO usar para BI) |
+| `FECHA_DESPACHO` | DATETIME | Fecha real del despacho — **usar esta para BI y métricas** |
 | `COD_EMPRESA_TRANSPORTE` | VARCHAR | NIT de la empresa transportadora |
 | `ESTADO` | CHAR(1) | **C**=Por Cargar, **E**=En proceso, **D**=Despachado, **X**=Anulado |
-| `COD_REGISTRO_CAMION` | BIGINT (FK) | Referencia a `CAMION.COD_CAMION` |
+| `COD_REGISTRO_CAMION` | BIGINT (FK) | Referencia a `CAMION.COD_CAMION` (vehículo real) |
 | `COD_CONDUCTOR` | BIGINT (FK) | Referencia a `CONDUCTOR.COD_CONDUCTOR` |
 
 **Estados del Camión**:
@@ -74,18 +57,7 @@ COD_CONDUCTOR: 102, NOMBRES: 'María González', TELEFONO: '3009876543', CI: '87
 - `D` = **Despachado**: Camión ya salió de planta
 - `X` = **Anulado**: Despacho cancelado
 
-**Ejemplos**:
-```sql
--- Camión programado para mañana (esperando alistamiento)
-COD_CAMION: 1001, FECHA: '2024-12-26', ESTADO: 'C', 
-COD_REGISTRO_CAMION: 1, COD_CONDUCTOR: 101
-
--- Camión siendo cargado ahora (no se puede alistar)
-COD_CAMION: 1002, FECHA: '2024-12-25', ESTADO: 'E', 
-COD_REGISTRO_CAMION: 2, COD_CONDUCTOR: 102
-```
-
-**Nota importante**: `COD_CAMION` aquí NO es el código del vehículo, es el **ID del despacho programado**. El código real del vehículo está en `COD_REGISTRO_CAMION`.
+**⚠️ Nota importante**: `COD_CAMION` aquí NO es el código del vehículo, es el **ID del despacho programado**. El código real del vehículo está en `COD_REGISTRO_CAMION`. Para BI y métricas siempre usar `FECHA_DESPACHO`, no `FECHA`.
 
 ---
 
@@ -98,17 +70,14 @@ COD_REGISTRO_CAMION: 2, COD_CONDUCTOR: 102
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
 | `COD_DOCUMENTO_DESPACHADO` | BIGINT (PK) | ID único del registro |
-| `SECUENCIAL` | VARCHAR | Número de remisión (ej: IE/TTS-12345) |
+| `SECUENCIAL` | VARCHAR | Número de remisión (ej: IE/TTS-12345, IE/RMV-67890) |
 | `COD_CAMION` | BIGINT (FK) | Referencia a `CAMION_X_DIA.COD_CAMION` |
+| `FECHA_PROGRAMACION` | DATETIME | Fecha en que se programó el documento |
+| `ESTADO` | CHAR(1) | **A**=Activo, **X**=Anulado (soft-delete) |
 
-**Ejemplos**:
-```sql
--- Remisión de transferencia entre bodegas
-SECUENCIAL: 'IE/TTS-12345', COD_CAMION: 1001
-
--- Remisión de venta a cliente
-SECUENCIAL: 'IE/RMV-67890', COD_CAMION: 1001
-```
+**Valores de ESTADO**:
+- `A` = **Activo**: documento vigente en el despacho
+- `X` = **Anulado**: documento removido sin eliminar físicamente (soft-delete)
 
 ---
 
@@ -122,87 +91,100 @@ SECUENCIAL: 'IE/RMV-67890', COD_CAMION: 1001
 |---------|------|-------------|
 | `COD_DETALLE_CAMION` | INT (PK) | ID único del detalle |
 | `COD_CAMION` | INT (FK) | Referencia a `CAMION_X_DIA.COD_CAMION` |
-| `ITEM` | INT | Código del producto del ERP |
-| `ITEM_EQUIVALENTE` | INT | Código equivalente en otra compañía |
+| `ITEM` | VARCHAR | Código del producto del ERP |
+| `ITEM_EQUIVALENTE` | VARCHAR | Código equivalente en otra compañía |
 | `CANTIDAD_PLANIFICADA` | FLOAT | Cantidad pedida (unidades/kilos) |
-| `ESTADO` | CHAR(1) | Estado del detalle (C=Creado) |
-| `SECUENCIAL` | VARCHAR | Remisión/TTS de origen |
+| `CANTIDAD_DESPACHADA` | FLOAT | Cantidad efectivamente despachada |
+| `JUSTIFICACION` | VARCHAR | Justificación de diferencias o ajustes |
+| `ESTADO` | CHAR(1) | Estado del detalle (A=Activo, C=Creado) |
+| `SECUENCIAL` | VARCHAR | Remisión/TTS de origen (ej: IE/TTS-12345) |
 | `PTO_ENVIO` | VARCHAR | Destino/Ciudad del envío |
 | `UN_MEDIDA` | VARCHAR | Unidad de medida (UND, KG, MT) |
 
-**Ejemplos**:
-```sql
--- Línea de detalle: 100 unidades del ítem 12345
-ITEM: '12345', CANTIDAD_PLANIFICADA: 100, UN_MEDIDA: 'UND', 
-SECUENCIAL: 'IE/TTS-12345', PTO_ENVIO: 'Bogotá'
-
--- Línea de detalle: 500 kilos del ítem 67890
-ITEM: '67890', CANTIDAD_PLANIFICADA: 500, UN_MEDIDA: 'KG', 
-SECUENCIAL: 'IE/RMV-67890', PTO_ENVIO: 'Medellín'
-```
-
-**Relación con ERP**: Los datos se obtienen del ERP Siesa (UnoEE) mediante consultas SQL que acceden a las tablas de documentos contables (`t350_co_docto_contable`, `t470_cm_movto_invent`).
+**Relación con ERP**: Los datos se obtienen del ERP Siesa (UnoEE) mediante consultas SQL que acceden a las tablas de documentos contables (`t350_co_docto_contable`, `t470_cm_movto_invent`) vía linked server `[192.168.99.68].[UnoEE_Doron]`.
 
 ---
 
 ## 🏭 Schema: `[EMPAQUE(PR)]` - Sistema de Alistamiento
 
-### 6. `ETIQUETA` (Superclase) 🏷️
+### 6. `ETIQUETA` 🏷️
 
-**Descripción**: Almacena las etiquetas físicas de productos empacados. Tabla madre de `ETIQUETA_LINER` y `ETIQUETA_ROLLO`.
+**Descripción**: Etiquetas físicas de producto terminado tipo paca/saco. Tabla independiente (sin herencia) junto a `ETIQUETA_LINER` y `ETIQUETA_ROLLO`.
 
-**Propósito**: Registrar cada paca/rollo/pallet que ingresa a bodega con su información de trazabilidad.
+**Propósito**: Registrar cada paca que ingresa a bodega con su información de trazabilidad.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
-| `idEtiqueta` | VARCHAR (PK) | Código de barras único (ej: PACA-001) |
-| `item` | INT | Código del producto |
-| `cantidad` | DECIMAL | Cantidad en la etiqueta |
-| `pesoNeto` | DECIMAL | Peso neto del producto |
-| `pesoBruto` | DECIMAL | Peso bruto con empaque |
-| `fecha` | DATE | Fecha de producción |
-| `tipoEtiquetado` | VARCHAR | Tipo (PACA, ROLLO, etc) |
-| `estado` | VARCHAR | ACTIVA, ELIMINADA, DESPACHADA |
+| `COD_ETIQUETA` | VARCHAR (PK) | Código de barras único (ej: 01020A0001) |
+| `COD_ITEM` | INT | Código del producto ERP |
+| `CANTIDAD` | DECIMAL | Cantidad en unidades |
+| `PESO` | DECIMAL | Peso neto del producto |
+| `PESO_TEORICO` | DECIMAL | Peso teórico esperado |
+| `COD_CLIENTE` | VARCHAR | Código del cliente |
+| `COD_EMPACADOR` | INT | Operador que empacó |
+| `COD_CORTADOR` | INT | Operador cortador |
+| `COD_TURNO` | VARCHAR | Turno de producción (A/B/C) |
+| `ESTADO` | VARCHAR | Estado de la etiqueta (R=Regular/Activa, etc.) |
+| `FECHA` | DATETIME | Fecha de producción |
+| `LOTE` | VARCHAR | Lote de producción |
+| `ORDEN_PRODUCCION` | INT | Orden de producción asociada |
+| `COD_TIPO_ETIQUETADO` | VARCHAR | Tipo de etiquetado (puede ser null) |
+| `CONSUMIDA_EN` | VARCHAR | Referencia de consumo (null si no consumida) |
+| `DESPACHADA_EN` | VARCHAR | Referencia de despacho (null si no despachada) |
 
-**Ejemplos**:
-```sql
--- Paca de producto terminado
-idEtiqueta: 'PACA-20241225-001', item: 12345, cantidad: 50, 
-pesoNeto: 25.5, estado: 'ACTIVA'
-
--- Rollo de material
-idEtiqueta: 'ROLLO-20241225-100', item: 67890, cantidad: 1000, 
-pesoNeto: 500, estado: 'ACTIVA'
-```
-
----
-
-### 7. `ETIQUETA_LINER` (Hereda de ETIQUETA)
-
-**Descripción**: Etiquetas específicas para productos tipo LINER (cartón corrugado).
-
-**Propósito**: Registrar información adicional de trazabilidad para productos LINER.
-
-| Columnas adicionales | Tipo | Descripción |
-|---------------------|------|-------------|
-| `ancho` | DECIMAL | Ancho del liner (cm) |
-| `largo` | DECIMAL | Largo del liner (cm) |
-| `gramaje` | INT | Gramaje del papel (g/m²) |
-| `idLote` | VARCHAR | Lote de producción |
+**⚠️ Nota**: Las tres tablas de etiquetas (`ETIQUETA`, `ETIQUETA_LINER`, `ETIQUETA_ROLLO`) son independientes — NO tienen herencia entre sí. La vista `vw_EtiquetasBI` las unifica.
 
 ---
 
-### 8. `ETIQUETA_ROLLO` (Hereda de ETIQUETA)
+### 7. `ETIQUETA_LINER`
 
-**Descripción**: Etiquetas específicas para productos tipo ROLLO (papel en bobina).
+**Descripción**: Etiquetas específicas para productos tipo LINER (cartón corrugado/laminado). Tabla independiente, sin herencia de `ETIQUETA`.
 
-**Propósito**: Registrar información adicional de trazabilidad para rollos.
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `COD_ETIQUETA_LINER` | VARCHAR (PK) | Código de barras único del liner |
+| `COD_BARRAS` | VARCHAR | Código de barras completo |
+| `FECHA` | DATETIME | Fecha de producción |
+| `ITEM` | INT | Código del producto ERP |
+| `EXTRUSORA` | INT | Número de extrusora que lo produjo |
+| `OPERADOR` | INT | Operador que registró |
+| `PESO_BRUTO` | DECIMAL | Peso bruto (kg) |
+| `PESO_NETO` | DECIMAL | Peso neto (kg) |
+| `ESTADO` | INT | Estado numérico interno |
+| `ESTADO_PA_IPT` | VARCHAR | Estado proceso (R=Regular) |
+| `COD_TIPO_ETIQUETADO` | VARCHAR | Tipo de etiquetado (PR, etc.) |
+| `SELLADORA` | INT | Número de selladora |
+| `TURNO` | VARCHAR | Turno de producción |
+| `COD_AREA_x_TIPO_DS` | INT | Área por tipo de despacho |
+| `EXT2` | VARCHAR | Extrusora secundaria (puede ser null) |
+| `CANTIDAD` | DECIMAL | Cantidad (puede ser null) |
+| `CONSUMIDAEN` | VARCHAR | Referencia de consumo (null si no consumida) |
+| `DESPACHADAEN` | VARCHAR | Referencia de despacho (null si no despachada) |
 
-| Columnas adicionales | Tipo | Descripción |
-|---------------------|------|-------------|
-| `diametro` | DECIMAL | Diámetro del rollo (cm) |
-| `espesor` | DECIMAL | Espesor del papel (micras) |
-| `metrosLineales` | DECIMAL | Metros de papel en el rollo |
+---
+
+### 8. `ETIQUETA_ROLLO`
+
+**Descripción**: Etiquetas específicas para productos tipo ROLLO (tela tejida en bobina). Tabla independiente, sin herencia de `ETIQUETA`.
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `COD_ETIQUETA_ROLLO` | VARCHAR (PK) | Código de barras único del rollo |
+| `COD_BARRAS` | VARCHAR | Código de barras completo |
+| `FECHA` | DATETIME | Fecha de producción |
+| `ITEM` | INT | Código del producto ERP |
+| `TELAR` | INT | Número de telar que lo produjo |
+| `TEJEDOR` | INT | Operador tejedor |
+| `PESO_BRUTO` | DECIMAL | Peso bruto (kg) |
+| `PESO_NETO` | DECIMAL | Peso neto (kg) |
+| `METROS` | DECIMAL | Metros lineales del rollo |
+| `ESTADO` | INT | Estado numérico interno |
+| `ESTADO_PA_IPT` | VARCHAR | Estado proceso (R=Regular) |
+| `COD_TIPO_ETIQUETADO` | VARCHAR | Tipo de etiquetado (PR, etc.) |
+| `CI_OPERADOR` | VARCHAR | Cédula del operador |
+| `TURNO` | VARCHAR | Turno de producción |
+| `CONSUMIDA_EN` | VARCHAR | Referencia de consumo (null si no consumida) |
+| `DESPACHADA_EN` | VARCHAR | Referencia de despacho (null si no despachada) |
 
 ---
 
@@ -215,33 +197,19 @@ pesoNeto: 500, estado: 'ACTIVA'
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
 | `idKardexBodega` | INT (PK) | ID único del movimiento |
-| `tipoEntrada` | CHAR(1) | **M**=Manual, **B**=Banda transportadora |
-| `tipoSalida` | CHAR(1) | **M**=Manual, **B**=Banda, **D**=Despacho |
+| `tipoEntrada` | VARCHAR | Tipo de entrada: **B**=Banda transportadora, **M**=Manual |
+| `tipoSalida` | VARCHAR | Tipo de salida: **DESPACHO**, **BORRADO**, **M**=Manual, **B**=Banda |
 | `etiqueta` | VARCHAR (FK) | Código de la etiqueta |
-| `idBodega` | INT | Bodega donde está/estuvo |
+| `idBodega` | VARCHAR | Bodega donde está/estuvo |
 | `fechaIngreso` | DATETIME | Cuándo ingresó a bodega |
 | `fechaSalida` | DATETIME | Cuándo salió de bodega |
-| `enBodega` | BIT | **1**=Está en bodega, **0**=Fue despachado |
+| `enBodega` | BIT | **1**=Está en bodega, **0**=Fue despachado/removido |
 | `idUsuarioEntrante` | INT | Usuario que registró entrada |
 | `idUsuarioSalida` | INT | Usuario que registró salida |
 | `idRemision` | VARCHAR | Remisión con la que salió |
-| `area` | VARCHAR | Área/Zona de la bodega |
+| `area` | VARCHAR | Área/Zona de la bodega (ej: BANDA, A-01) |
 
-**Ejemplos**:
-```sql
--- Etiqueta recién producida, ingresa a bodega
-etiqueta: 'PACA-001', fechaIngreso: '2024-12-25 08:00', 
-enBodega: 1, tipoEntrada: 'B'
-
--- Etiqueta despachada en camión
-etiqueta: 'PACA-001', fechaSalida: '2024-12-25 14:30', 
-enBodega: 0, tipoSalida: 'D', idRemision: 'IE/TTS-12345'
-```
-
-**Flujo típico**:
-1. Producto termina producción → `INSERT` en KARDEX (enBodega=1)
-2. Operador alista producto → Se lee etiqueta en ALISTAMIENTO_ETIQUETA
-3. Despachador despacha camión → `UPDATE` en KARDEX (enBodega=0, fechaSalida, idRemision)
+**⚠️ Nota**: Usar `LEFT JOIN` al cruzar con tablas de usuarios — `idUsuarioSalida` puede ser null en registros sin salida aún.
 
 ---
 
@@ -268,52 +236,30 @@ enBodega: 0, tipoSalida: 'D', idRemision: 'IE/TTS-12345'
 - `ALISTADO_INCOMPLETO`: Se completó pero faltan productos
 - `ANULADO`: Se canceló el alistamiento
 
-**Ejemplos**:
-```sql
--- Alistamiento en curso
-idAlistamiento: 5001, idCamionDia: 1001, idUsuario: 25, 
-estado: 'EN_PROCESO', fechaInicio: '2024-12-25 09:00'
-
--- Alistamiento completo
-idAlistamiento: 5002, idCamionDia: 1002, idUsuario: 26, 
-estado: 'ALISTADO', fechaInicio: '2024-12-25 08:00', 
-fechaFin: '2024-12-25 11:30'
-```
-
 **Relación**: `ALISTAMIENTO` ↔ `CAMION_X_DIA` es **1:1** (un camión tiene un solo alistamiento activo a la vez).
 
 ---
 
 ### 11. `ALISTAMIENTO_ETIQUETA` 📝
 
-**Descripción**: Registra las etiquetas físicas que fueron leídas durante el alistamiento de un camión. Tabla de relación **1:N**.
+**Descripción**: Registra las etiquetas físicas que fueron leídas durante el alistamiento de un camión.
 
 **Propósito**: Rastrear qué etiquetas específicas se incluyeron en cada alistamiento.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
-| `idAlistamiento` | INT (PK, FK) | Referencia a `ALISTAMIENTO.idAlistamiento` |
-| `etiqueta` | VARCHAR (PK, FK) | Código de la etiqueta leída |
+| `idAlistamientoEtiqueta` | INT (PK) | ID surrogate único del registro |
+| `idAlistamiento` | INT (FK) | Referencia a `ALISTAMIENTO.idAlistamiento` |
+| `etiqueta` | VARCHAR (FK) | Código de la etiqueta leída |
 | `fecha` | DATETIME | Cuándo se leyó la etiqueta |
-| `estado` | VARCHAR | ACTIVA, ELIMINADA |
-| `areaInicial` | VARCHAR | De dónde se tomó |
-| `areaFinal` | VARCHAR | Hacia dónde se movió |
+| `estado` | VARCHAR | **ACTIVA** o **ELIMINADA** |
+| `areaInicial` | VARCHAR | De dónde se tomó (ej: ALISTAMIENTO) |
+| `areaFinal` | VARCHAR | Hacia dónde se movió (ej: ALISTAMIENTO-SPJ707) |
 | `idBodegaInicial` | INT | Bodega de origen |
 | `idBodegaFinal` | INT | Bodega de destino |
 | `idUsuario` | INT | Quién la leyó |
 
-**Ejemplos**:
-```sql
--- Etiqueta alistada correctamente
-idAlistamiento: 5001, etiqueta: 'PACA-001', 
-fecha: '2024-12-25 09:15', estado: 'ACTIVA'
-
--- Etiqueta eliminada por error
-idAlistamiento: 5001, etiqueta: 'PACA-002', 
-fecha: '2024-12-25 09:20', estado: 'ELIMINADA'
-```
-
-**Relación**: Un `ALISTAMIENTO` puede tener **muchas** `ALISTAMIENTO_ETIQUETA` (1:N).
+**Relación**: Un `ALISTAMIENTO` puede tener **muchas** `ALISTAMIENTO_ETIQUETA` (1:N). El par (`idAlistamiento`, `etiqueta`) es lógicamente único para etiquetas activas.
 
 ---
 
@@ -333,17 +279,6 @@ fecha: '2024-12-25 09:20', estado: 'ELIMINADA'
 | `fechaCreacion` | DATETIME | Fecha de creación (default: GETDATE()) |
 | `modificadoPor` | INT (FK, NULL) | Último usuario que lo modificó |
 | `fechaModificacion` | DATETIME (NULL) | Fecha de última modificación |
-
-**Ejemplos**:
-```sql
--- Formato para bodega principal (ej: patrón A-01 a Z-99)
-idFormatoAreaBodega: 1, nombreFormato: 'Bodega Principal', activo: 1,
-creadoPor: 1, fechaCreacion: '2025-05-11'
-
--- Formato desactivado (fue reemplazado)
-idFormatoAreaBodega: 2, nombreFormato: 'Formato Antiguo Revisión', activo: 0,
-creadoPor: 1, fechaCreacion: '2025-01-01', modificadoPor: 3
-```
 
 **Relación**: Un `FormatoAreaBodega` puede estar asignado a **muchas** bodegas vía `BodegaFormato`.
 
@@ -380,20 +315,6 @@ creadoPor: 1, fechaCreacion: '2025-01-01', modificadoPor: 3
 | 4 | Separador | Guion (`-`) o espacio | `"-"` |
 | 5 | NumeroLibre | Número entero en rango libre | `"140"`, `"1"` |
 
-**Ejemplos**:
-```sql
--- Formato "A-01": Letra(A-Z) + Separador(-) + Dígito(0-9) + Dígito(0-9)
-orden: 1, tipoComponente: 2, rangoLetraDesde: 'A', rangoLetraHasta: 'Z'
-orden: 2, tipoComponente: 4, valorLiteral: '-'
-orden: 3, tipoComponente: 3, minimoNumero: 0, maximoNumero: 9
-orden: 4, tipoComponente: 3, minimoNumero: 0, maximoNumero: 9
-
--- Formato "INALIP-140": Literal(INALIP) + Separador(-) + NumeroLibre(1-140)
-orden: 1, tipoComponente: 1, valorLiteral: 'INALIP'
-orden: 2, tipoComponente: 4, valorLiteral: '-'
-orden: 3, tipoComponente: 5, minimoValor: 1, maximoValor: 140
-```
-
 **Restricción**: El par (`idFormatoAreaBodega`, `orden`) es único — no puede haber dos componentes en la misma posición.
 
 ---
@@ -401,8 +322,6 @@ orden: 3, tipoComponente: 5, minimoValor: 1, maximoValor: 140
 ### 14. `BodegaFormato` 🔗
 
 **Descripción**: Tabla de relación N:M entre bodegas y formatos. Indica **qué formato(s) usa cada bodega** y cuál es el predeterminado.
-
-**Propósito**: Permitir que una bodega tenga varios formatos (ej: en transición) y que el sistema siempre sepa cuál aplicar por defecto.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
@@ -416,16 +335,6 @@ orden: 3, tipoComponente: 5, minimoValor: 1, maximoValor: 140
 | `modificadoPor` | INT (FK, NULL) | Último usuario que modificó la asignación |
 | `fechaModificacion` | DATETIME (NULL) | Fecha de última modificación |
 
-**Ejemplos**:
-```sql
--- Bodega 5 usa el formato 1 como predeterminado
-idBodega: 5, idFormatoAreaBodega: 1, activo: 1, esPredeterminado: 1,
-asignadoPor: 1, fechaAsignacion: '2025-05-11'
-
--- Bodega 5 también tiene el formato 3 (inactivo, antes era el predeterminado)
-idBodega: 5, idFormatoAreaBodega: 3, activo: 0, esPredeterminado: 0
-```
-
 **Restricción**: Solo puede haber **un** registro con `esPredeterminado = 1` y `activo = 1` por bodega (índice único filtrado `UX_BodegaFormato_UnicoPredeterminadoActivo`).
 
 **Nota**: La FK hacia `UBICACIONES_BODEGA` fue omitida intencionalmente porque `COD_UBICACION` no es PK de esa tabla. La relación se mantiene por consistencia lógica.
@@ -435,8 +344,6 @@ idBodega: 5, idFormatoAreaBodega: 3, activo: 0, esPredeterminado: 0
 ### 15. `FormatoAreaBodegaHistorial` 📜
 
 **Descripción**: Registro de auditoría de todos los cambios sobre los formatos. Cada creación, modificación o desactivación queda grabada aquí con el estado anterior y el nuevo.
-
-**Propósito**: Cumplir con trazabilidad de cambios sobre configuraciones críticas que afectan la validación del inventario en Kardex.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
@@ -448,28 +355,11 @@ idBodega: 5, idFormatoAreaBodega: 3, activo: 0, esPredeterminado: 0
 | `ejecutadoPor` | INT (FK) | Usuario que realizó la acción |
 | `fechaEjecucion` | DATETIME | Fecha y hora del cambio (default: GETDATE()) |
 
-**Ejemplos**:
-```sql
--- Creación de un formato nuevo (antes vacío)
-idFormatoAreaBodega: 1, accion: 'CREAR',
-antesJson: NULL,
-despuesJson: '{"nombre":"Bodega Principal","activo":true,"componentes":[...]}',
-ejecutadoPor: 3, fechaEjecucion: '2025-05-11 10:22:00'
-
--- Desactivación de un formato
-idFormatoAreaBodega: 2, accion: 'DESACTIVAR',
-antesJson: '{"nombre":"Formato Antiguo","activo":true}',
-despuesJson: '{"nombre":"Formato Antiguo","activo":false}',
-ejecutadoPor: 1, fechaEjecucion: '2025-05-13 14:05:00'
-```
-
 ---
 
 ### 16. `ConfiguracionAreasKardex` ⚙️
 
 **Descripción**: Tabla de control de versión del caché de reglas de validación de áreas. Tiene **un solo registro activo** que se incrementa cada vez que se modifica cualquier formato.
-
-**Propósito**: Permitir que el servicio `AreaBodegaKardexService` sepa cuándo su caché en memoria está desactualizado, sin consultar todas las tablas en cada lectura de etiqueta.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
@@ -478,14 +368,31 @@ ejecutadoPor: 1, fechaEjecucion: '2025-05-13 14:05:00'
 | `fechaActualizacion` | DATETIME | Última vez que se actualizó (default: GETDATE()) |
 | `actualizadoPor` | INT (FK, NULL) | Usuario que disparó la actualización |
 
-**Ejemplos**:
-```sql
--- Estado inicial (ningún cambio aún)
-idConfiguracion: 1, versionReglas: 1, fechaActualizacion: '2025-05-11 10:00:00'
+---
 
--- Después de crear un nuevo formato
-idConfiguracion: 1, versionReglas: 4, fechaActualizacion: '2025-05-13 14:05:00'
-```
+## 🗃️ Tablas de Caché Local
+
+### 17. `ITEMS_CACHE` (BD `EMPAQUE(PR)`)
+
+**Descripción**: Tabla local que cachea los datos de ítems del ERP (`t120_mc_items`) para evitar JOINs costosos al linked server en cada consulta operativa.
+
+**Propósito**: Fuente local de datos de ítems para todas las queries del flujo diario (alistamiento, kardex, planificación). Se refresca automáticamente cada 10 minutos con el SP `sp_RefrescarItemsCache` (SQL Server Agent: Job "Refrescar ITEMS_CACHE").
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `Item` | INT (PK) | Código del ítem ERP (`f120_id`) |
+| `Descripcion` | NVARCHAR(200) | Nombre completo del ítem (`f120_descripcion`) |
+| `DescripcionCorta` | NVARCHAR(100) | Nombre corto (`f120_descripcion_corta`) |
+| `UnidadInventario` | VARCHAR(10) | Unidad de inventario ERP: `UND`, `KLS`, `MTS` (`f120_id_unidad_inventario`) |
+| `UnidadEmpaque` | VARCHAR(20) | Unidad de empaque: ej. `P012`, `K500` (`f120_id_unidad_empaque`) |
+| `Linea` | NVARCHAR(200) | Línea de producto (criterio LINEA del ERP, via t125→t106→t105) |
+| `RowId` | INT | `f120_rowid` del ERP |
+
+**Datos**:
+- ~30k filas, ~5MB
+- Pre-filtrada a `f120_id_cia = 2` — no hay que agregar ese filtro en las queries que la consumen
+- Refresco: TRUNCATE + INSERT (~5 segundos de ventana vacía)
+- Fuente: `[192.168.99.68].[UnoEE_Doron].dbo.t120_mc_items` + criterios de línea
 
 ---
 
@@ -495,9 +402,9 @@ idConfiguracion: 1, versionReglas: 4, fechaActualizacion: '2025-05-13 14:05:00'
 
 ```
 1. Usuario carga Excel con remisiones
-2. Sistema valida datos del ERP (Siesa)
-3. Se crea registro en CAMION_X_DIA (Estado='C')
-4. Se insertan remisiones en DOCUMENTOS_DESPACHADOS
+2. Sistema valida datos del ERP (Siesa UnoEE vía linked server [192.168.99.68].[UnoEE_Doron])
+3. Se crea registro en CAMION_X_DIA (Estado='C'), se registra FECHA_DESPACHO
+4. Se insertan remisiones en DOCUMENTOS_DESPACHADOS (ESTADO='A')
 5. Se consulta ERP para obtener ítems
 6. Se insertan ítems en DETALLE_CAMION_X_DIA
 ```
@@ -526,6 +433,7 @@ idConfiguracion: 1, versionReglas: 4, fechaActualizacion: '2025-05-13 14:05:00'
     - enBodega = 0
     - fechaSalida = NOW()
     - idRemision = número de remisión
+    - tipoSalida = 'DESPACHO'
 20. CAMION_X_DIA.Estado cambia a 'D' (Despachado)
 21. Fin del ciclo
 ```
@@ -541,13 +449,13 @@ Un **despacho** es el proceso completo de preparar y enviar un camión con produ
 El **alistamiento** es el proceso de "picking" (recolección de productos) de bodega para cumplir con el pedido del camión. El operador lee físicamente cada etiqueta para confirmar que está incluyendo los productos correctos.
 
 ### ¿Qué es una "Etiqueta"?
-Una **etiqueta** es un código de barras físico impreso que identifica de manera única una paca, rollo o pallet de producto. Contiene información de trazabilidad (fecha, lote, cantidad, peso).
+Una **etiqueta** es un código de barras físico impreso que identifica de manera única una paca, rollo o pieza de liner de producto. Contiene información de trazabilidad (fecha, lote, cantidad, peso). Las tres tablas (`ETIQUETA`, `ETIQUETA_LINER`, `ETIQUETA_ROLLO`) son independientes — sin herencia entre sí.
 
 ### ¿Qué es el "Kardex"?
-El **kardex** es el registro histórico de todos los movimientos de inventario. Muestra dónde está cada etiqueta en cada momento, y permite hacer auditorías de inventario.
+El **kardex** es el registro histórico de todos los movimientos de inventario. Muestra dónde está cada etiqueta en cada momento, y permite hacer auditorías de inventario. `tipoSalida` puede ser: `DESPACHO`, `BORRADO`, `M` (manual) o `B` (banda).
 
 ### ¿Qué es un "Formato de Área"?
-Un **formato de área** es una plantilla que describe cómo deben ser los códigos de ubicación dentro de una bodega. Se compone de piezas ordenadas: letras, dígitos, textos fijos, separadores y números libres. Por ejemplo, el formato `Letra(A-Z) + "-" + Dígito + Dígito` valida áreas como `A-01`, `B-99`, `Z-10`. Sin formato configurado, ningún área puede ser registrada en esa bodega.
+Un **formato de área** es una plantilla que describe cómo deben ser los códigos de ubicación dentro de una bodega. Se compone de piezas ordenadas: letras, dígitos, textos fijos, separadores y números libres. Por ejemplo, el formato `Letra(A-Z) + "-" + Dígito + Dígito` valida áreas como `A-01`, `B-99`, `Z-10`.
 
 ---
 
@@ -578,6 +486,7 @@ Un **formato de área** es una plantilla que describe cómo deben ser los códig
 **Reglas clave**:
 - La columna `Valor` es la única que debe usarse para sumar/agregar en BI — ya está normalizada por unidad ERP.
 - `Etiqueta` es única en toda la vista (PK lógica), aunque internamente provenga de tres tablas distintas.
+- Cuando `Desde='ETIQUETA_LINER'` la columna `Etiqueta` puede venir como cadena de espacios (placeholder).
 - La vista está expuesta vía MCP (servidor `mcp-mssql`, entidad `veb`).
 
 ---
@@ -585,16 +494,17 @@ Un **formato de área** es una plantilla que describe cómo deben ser los códig
 ## 📌 Notas Importantes
 
 - Todas las tablas de `SIE` usan el prefijo `COD_` para claves primarias
-- Todas las tablas de `EMPAQUE(PR)` usan el prefijo `id` para claves primarias (camelCase); las tablas de formatos de área siguen esta misma convención
+- Todas las tablas de `EMPAQUE(PR)` usan el prefijo `id` para claves primarias (camelCase)
 - El sistema opera en dos bases de datos diferentes (`SIE` y `EMPAQUE(PR)`)
-- El ERP externo (Siesa UnoEE) también está involucrado en consultas cross-database
-- La tabla `KARDEX_BODEGA` es crítica para auditorías de inventario
+- El ERP externo (Siesa UnoEE) se accede vía linked server `[192.168.99.68].[UnoEE_Doron]` — solo lectura, nunca INSERT/UPDATE/DELETE
+- La tabla `KARDEX_BODEGA` es crítica para auditorías de inventario — nunca modificar directamente
 - El Kardex de bodegas está en la aplicación **LECTURA DE BANDA** (`Frm_Kardex`)
 - La gestión de formatos de área (tablas §12–§16) es administrada desde esa misma aplicación por usuarios con perfil administrador
+- Para BI y métricas: siempre usar `FECHA_DESPACHO` de `CAMION_X_DIA`, nunca `FECHA`
 
 ---
 
 **Autor**: Sistema IE  
-**Fecha**: Diciembre 2024 — Actualizado Mayo 2026  
-**Versión**: 1.1 (agregadas tablas FormatoAreaBodega, Detalle, BodegaFormato, Historial, ConfiguracionAreasKardex)  
+**Fecha**: Diciembre 2024 — Actualizado Junio 2026  
+**Versión**: 1.3 (agregada ITEMS_CACHE con UnidadEmpaque; correcciones de columnas reales en tablas operativas; linked server corregido a 192.168.99.68)  
 **Propósito**: Documentación para LLMs y desarrolladores

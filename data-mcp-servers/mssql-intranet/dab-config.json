@@ -33,25 +33,10 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (192.168.50.86). Expone todas las tablas y vistas del schema dbo. 18 entidades. Generado automaticamente por gen-config.py."
+      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (192.168.50.86). Expone todas las tablas y vistas del schema dbo. 15 entidades. Generado automaticamente por gen-config.py."
     }
   },
   "entities": {
-    "Efmigrationshistory": {
-      "source": {
-        "type": "table",
-        "object": "dbo.__EFMigrationsHistory"
-      },
-      "permissions": [
-        {
-          "role": "anonymous",
-          "actions": [
-            "read"
-          ]
-        }
-      ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.__EFMigrationsHistory. SOLO LECTURA. TODO: refinar descripcion de negocio."
-    },
     "Archivoadjuntopersona": {
       "source": {
         "type": "table",
@@ -262,21 +247,6 @@
       ],
       "description": "BD INTRANET (192.168.50.86), base table dbo.SolicitudMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
-    "Sysdiagrams": {
-      "source": {
-        "type": "table",
-        "object": "dbo.sysdiagrams"
-      },
-      "permissions": [
-        {
-          "role": "anonymous",
-          "actions": [
-            "read"
-          ]
-        }
-      ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.sysdiagrams. SOLO LECTURA. TODO: refinar descripcion de negocio."
-    },
     "Tipodocumento": {
       "source": {
         "type": "table",
@@ -291,21 +261,6 @@
         }
       ],
       "description": "BD INTRANET (192.168.50.86), base table dbo.TipoDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
-    },
-    "Usuarios": {
-      "source": {
-        "type": "table",
-        "object": "dbo.Usuarios"
-      },
-      "permissions": [
-        {
-          "role": "anonymous",
-          "actions": [
-            "read"
-          ]
-        }
-      ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Usuarios. SOLO LECTURA. TODO: refinar descripcion de negocio."
     }
   }
 }
