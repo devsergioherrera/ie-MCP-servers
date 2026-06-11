@@ -33,7 +33,7 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (192.168.50.86). Expone todas las tablas y vistas del schema dbo. 15 entidades. Generado automaticamente por gen-config.py."
+      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (192.168.50.86). Expone todas las tablas y vistas del schema dbo. 16 entidades. Generado automaticamente por gen-config.py."
     }
   },
   "entities": {
@@ -261,6 +261,29 @@
         }
       ],
       "description": "BD INTRANET (192.168.50.86), base table dbo.TipoDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Usuarios": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Usuarios"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read",
+              "fields": {
+                "exclude": [
+                  "ContrasenaHash",
+                  "Salt"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Usuarios. SOLO LECTURA. TODO: refinar descripcion de negocio."
     }
   }
 }
