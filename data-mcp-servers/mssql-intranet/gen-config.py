@@ -27,11 +27,12 @@ CONN_ENV = "MSSQL_INTRANET_CONN"
 #  - __EFMigrationsHistory / sysdiagrams: basura de sistema (EF Core / SSMS).
 EXCLUDE_TABLES = {"__efmigrationshistory", "sysdiagrams"}
 
-# Columnas sensibles a OCULTAR por tabla (case-insensitive en la key de tabla).
-# La tabla SI se expone (read-only) pero estas columnas nunca salen por el MCP,
-# usando field-level exclude de DAB. Critico: credenciales (Ley 1273).
-#  - Usuarios: ContrasenaHash + Salt permitirian cracking offline.
-SENSITIVE_FIELDS = {"usuarios": ["ContrasenaHash", "Salt"]}
+# Columnas sensibles a OCULTAR por tabla (case-insensitive en la key de tabla),
+# via field-level exclude de DAB. Vacio = se exponen TODAS las columnas.
+# NOTA: se intento excluir ContrasenaHash+Salt de Usuarios, pero un DENY a
+# nivel de columna en SQL Server hace crashear a DAB al leer el esquema
+# (FillSchema, error 230). Decision del usuario: exponer todo sin filtrar.
+SENSITIVE_FIELDS: dict[str, list[str]] = {}
 
 
 def ado_to_odbc(ado: str) -> str:
