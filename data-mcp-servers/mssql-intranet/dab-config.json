@@ -3,12 +3,24 @@
   "data-source": {
     "database-type": "mssql",
     "connection-string": "@env('MSSQL_INTRANET_CONN')",
-    "options": { "set-session-context": false }
+    "options": {
+      "set-session-context": false
+    }
   },
   "runtime": {
-    "host": { "mode": "production", "cors": { "origins": [], "allow-credentials": false } },
-    "rest": { "enabled": false },
-    "graphql": { "enabled": false },
+    "host": {
+      "mode": "production",
+      "cors": {
+        "origins": [],
+        "allow-credentials": false
+      }
+    },
+    "rest": {
+      "enabled": false
+    },
+    "graphql": {
+      "enabled": false
+    },
     "mcp": {
       "enabled": true,
       "path": "/mcp",
@@ -21,8 +33,279 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de SOLO LECTURA sobre la BD INTRANET (192.168.50.86). PLACEHHOLDER: regenerar con gen-config.py para poblar las entidades reales antes de desplegar."
+      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (192.168.50.86). Expone todas las tablas y vistas del schema dbo. 18 entidades. Generado automaticamente por gen-config.py."
     }
   },
-  "entities": {}
+  "entities": {
+    "Efmigrationshistory": {
+      "source": {
+        "type": "table",
+        "object": "dbo.__EFMigrationsHistory"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.__EFMigrationsHistory. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Archivoadjuntopersona": {
+      "source": {
+        "type": "table",
+        "object": "dbo.ArchivoAdjuntoPersona"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.ArchivoAdjuntoPersona. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Area": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Area"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Area. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Documento": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Documento"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Documento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Documentoempresa": {
+      "source": {
+        "type": "table",
+        "object": "dbo.DocumentoEmpresa"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.DocumentoEmpresa. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Empresa": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Empresa"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Empresa. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Evidenciamantenimiento": {
+      "source": {
+        "type": "table",
+        "object": "dbo.EvidenciaMantenimiento"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.EvidenciaMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Inspeccion": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Inspeccion"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Inspeccion. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Inspeccionareacategoria": {
+      "source": {
+        "type": "table",
+        "object": "dbo.InspeccionAreaCategoria"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionAreaCategoria. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Inspeccioncalificacion": {
+      "source": {
+        "type": "table",
+        "object": "dbo.InspeccionCalificacion"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionCalificacion. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Inspeccioncategoria": {
+      "source": {
+        "type": "table",
+        "object": "dbo.InspeccionCategoria"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionCategoria. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Inspeccioncriterio": {
+      "source": {
+        "type": "table",
+        "object": "dbo.InspeccionCriterio"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionCriterio. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Nomenclaturadocumento": {
+      "source": {
+        "type": "table",
+        "object": "dbo.NomenclaturaDocumento"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.NomenclaturaDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Parametro": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Parametro"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Parametro. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Solicitudmantenimiento": {
+      "source": {
+        "type": "table",
+        "object": "dbo.SolicitudMantenimiento"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.SolicitudMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Sysdiagrams": {
+      "source": {
+        "type": "table",
+        "object": "dbo.sysdiagrams"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.sysdiagrams. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Tipodocumento": {
+      "source": {
+        "type": "table",
+        "object": "dbo.TipoDocumento"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.TipoDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    },
+    "Usuarios": {
+      "source": {
+        "type": "table",
+        "object": "dbo.Usuarios"
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "description": "BD INTRANET (192.168.50.86), base table dbo.Usuarios. SOLO LECTURA. TODO: refinar descripcion de negocio."
+    }
+  }
 }
