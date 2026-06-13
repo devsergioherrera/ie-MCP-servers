@@ -45,6 +45,11 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
   - `PIPELINE_BI_IE.md` (vistas, GoogleSheets, Looker)
   - `SIRA_IE.md` (proyecto C++/TFLite extrusion)
 - [ ] **#9 Healthcheck en `mcp-ie-docs`** — anadir endpoint `/health` en `server.py` o un mini handler HTTP separado.
+- [ ] **#18 `write_doc`/`append_doc` deben sincronizar con git** — hoy las tools escriben el `.md` en el volumen del server pero NO tocan el repo, asi que los docs quedan **untracked** y se desincronizan de GitHub (paso real: las sesiones de IA escribieron `IAM-IE-Guia-Integracion.md`, `Servicio-Correo-IE.md`, `Sistema-IAM-IE.md` y quedaron sin commitear, a punto de perderse). Que tras escribir/anexar, la tool haga `git add <archivo> && git commit && git push` (o encole el cambio). Consideraciones de diseno:
+  - El contenedor `mcp-ie-docs` necesitaria credenciales/deploy-key de git con permiso de push (montar la SSH key read-write o un token de GitHub como secret) — evaluar superficie de riesgo (un MCP con push al repo).
+  - Alternativa mas segura: un **watcher/cron separado** en el host (no en el contenedor) que detecte cambios en `/docs/*.md` y haga commit+push con identidad de bot, dejando al MCP sin credenciales de escritura a git.
+  - Manejar el caso de conflicto/divergencia (pull --rebase antes de push) y los `.md.bak` (ya ignorados por `.gitignore`).
+  - Relacionado con #13 (retencion de `.md.bak`).
 
 ## Observabilidad
 
