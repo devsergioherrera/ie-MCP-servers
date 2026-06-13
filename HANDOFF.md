@@ -1,22 +1,22 @@
 # HANDOFF — ie-MCP-servers (vacaciones Sergio)
 
 > Estado al 2026-06-13. El código está 100% en `master` y pusheado.
-> Lo único pendiente es **operativo** (un paso SQL + redeploy). Léelo completo.
+> ✅ RESUELTO (2026-06-13): Sergio corrió el REVOKE del DENY y redesplegó.
+> `mcp-mssql-intranet` quedó **Up** con `Usuarios` expuesto. No hay tareas
+> operativas pendientes. El resto del documento se conserva como referencia
+> histórica del problema y de la arquitectura.
 
-## TL;DR — qué falta
+## TL;DR — (histórico, ya resuelto)
 
-Exponer la tabla `Usuarios` de la BD **INTRANET** quedó a medias. Hoy el
-contenedor `mcp-mssql-intranet` está **en crash-loop** porque hay un `DENY` a
-nivel de columna en SQL Server que rompe a DAB al arrancar. Hay que decidir:
+Exponer la tabla `Usuarios` de la BD **INTRANET** dejó el contenedor
+`mcp-mssql-intranet` en crash-loop porque un `DENY` a nivel de columna en SQL
+Server rompía a DAB al arrancar. Se resolvió por **Opción A**: se quitó el DENY
+(`REVOKE`) y se regeneró/redesplegó exponiendo `Usuarios` completo.
 
-- **Opción A (lo que pidió Sergio): exponer Usuarios COMPLETO** (incluye
-  ContrasenaHash + Salt). Requiere quitar el DENY y redesplegar.
-- **Opción B (recomendada por seguridad): NO exponer Usuarios** (o solo
-  columnas no sensibles). Estabiliza el contenedor sin exponer credenciales.
-
-> ⚠️ Nota de seguridad: `mcp.ie` no tiene autenticación (confianza-LAN).
-> Exponer `Usuarios` completo publica hashes+salt de credenciales a cualquiera
-> en la red interna (roza Ley 1273). Confirmar con Sergio antes de Opción A.
+> ⚠️ Nota de seguridad (vigente): `mcp.ie` no tiene autenticación
+> (confianza-LAN). `Usuarios` expone hashes+salt de credenciales a cualquiera
+> en la red interna (roza Ley 1273). Decisión consciente de Sergio. Si en algún
+> momento se quiere revertir, ver "Opción B" abajo.
 
 ## Estado actual de los MCP servers (todos en `mcp.ie` vía proxy `ie-proxy`)
 
