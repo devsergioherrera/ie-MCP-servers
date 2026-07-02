@@ -9,7 +9,7 @@ name: ie-mcp
 #   5005  mcp-mssql-intranet  SQL Server INTRANET (192.168.50.86), solo lectura
 #   5006  mcp-mysql-glpi      (scaffolding — descomentar cuando este listo)
 #   5007  mcp-pg-op           (scaffolding — descomentar cuando este listo)
-#   5008  (reservado)
+#   5008  mcp-config-vault    Import/export de configs sensibles (auth IAM)
 #   5009  mcp-docs-api        FastAPI metadata de MCP servers (uso interno UI)
 #   5010  mcp-ui              UI estatica Astro (landing + /info)
 # ============================================================
@@ -103,6 +103,37 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 10s
+      retries: 3
+
+  mcp-config-vault:
+    build: ../docs-mcp-servers/config-vault
+    container_name: mcp-config-vault
+    restart: unless-stopped
+    environment:
+      IAM_BASE_URL: ${IAM_BASE_URL:-https://iam.ie}
+      IAM_PUBLIC_KEY_PATH: /keys/public.pem
+      # IAM_CA_BUNDLE: /keys/root-ca.pem  # descomentar si login() valida TLS contra la CA interna
+    volumes:
+      - ${VAULT_HOST_DIR:-/proyectos/_vault}:/vault:rw          # almacen central (fuera de git)
+      - ${IAM_KEYS_DIR:-/proyectos/ie-IAM/backend/keys}:/keys:ro # llave publica del IAM (public.pem)
+      - ../logs:/logs:rw                                        # auditoria JSONL
+    ports:
+      - "127.0.0.1:5008:8000"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import socket,sys; s=socket.socket(); s.settimeout(3); s.connect(('127.0.0.1', 8000)); s.close()"
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
       retries: 3
 
   mcp-docs-api:

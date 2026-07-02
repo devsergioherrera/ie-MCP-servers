@@ -19,6 +19,10 @@
     "ie-docs": {
       "type": "http",
       "url": "http://mcp.ie/docs/mcp"
+    },
+    "ie-config-vault": {
+      "type": "http",
+      "url": "http://mcp.ie/vault/mcp"
     }
   }
 }

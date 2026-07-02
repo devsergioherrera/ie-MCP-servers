@@ -1,0 +1,10 @@
+[project]
+name = "ie-config-vault-mcp"
+version = "0.1.0"
+description = "MCP Server para importar/exportar archivos de configuracion sensibles (.env, certificados, llaves) desde un almacen central, autenticado contra el IAM de IE (JWT RS256, rol Superadmin)"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.2.0",
+    "pyjwt[crypto]>=2.8.0",
+    "httpx>=0.27.0",
+]

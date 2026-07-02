@@ -1,0 +1,39 @@
+{
+  "id": "ie-config-vault",
+  "label": "MCP Config Vault",
+  "type": "custom",
+  "readonly": false,
+  "description": "Importa/exporta archivos de configuracion sensibles (.env, public.pem, certificados, llaves, *.conf) desde un almacen central de IE. Autenticado contra el IAM (JWT RS256, rol Superadmin): login() emite el token, y list_configs/import_config/export_config lo exigen. Pensado para bootstrapear un proyecto tras git clone sin copiar secretos a mano ni meterlos en el repo. Toda operacion queda auditada.",
+  "tools": {
+    "login": true,
+    "list_configs": true,
+    "import_config": true,
+    "export_config": true
+  },
+  "entities": [
+    {
+      "name": "login",
+      "description": "Autentica contra el IAM de IE (https://iam.ie) y devuelve un access token (15 min) con los roles del usuario. Unica tool que no requiere token previo.",
+      "type": "tool",
+      "permissions": ["anonymous"]
+    },
+    {
+      "name": "list_configs",
+      "description": "Lista los archivos del vault (ruta, tamano, mtime, sha256) sin devolver su contenido. Requiere token Superadmin.",
+      "type": "tool",
+      "permissions": ["Superadmin"]
+    },
+    {
+      "name": "import_config",
+      "description": "Devuelve el contenido de un archivo del vault (texto utf-8 o base64 si es binario) para bootstrapear un proyecto local. Requiere token Superadmin.",
+      "type": "tool",
+      "permissions": ["Superadmin"]
+    },
+    {
+      "name": "export_config",
+      "description": "Escribe/actualiza un archivo en el vault central (respalda la version previa como .bak). Requiere token Superadmin. Queda auditado.",
+      "type": "tool",
+      "permissions": ["Superadmin"]
+    }
+  ]
+}
