@@ -15,6 +15,14 @@ que un agente autenticado:
 
 Sin copiar archivos a mano ni exponerlos en el repo público.
 
+> **`import_config` es de un solo tiro, no un enlace vivo.** Lee el archivo del
+> vault **una vez**, el agente lo escribe en una ruta **local gitignoreada** del
+> proyecto (nunca al repo — es público), y desde ese momento la app usa su copia
+> local. **En runtime la app nunca vuelve a llamar al vault.** El único momento que
+> depende del servidor es el bootstrap tras un clone limpio; los checkouts ya
+> configurados siguen funcionando aunque `linux.ie` esté caído. La resiliencia del
+> secreto viene del **backup mensual del vault**, no de un acoplamiento permanente.
+
 ## Seguridad
 
 Esto **sirve secretos**, así que el gating es lo más importante. `mcp.ie` no

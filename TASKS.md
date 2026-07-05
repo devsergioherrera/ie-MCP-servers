@@ -16,6 +16,10 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
   - (c) Generar un `Id` sinteticco en la vista (`ROW_NUMBER()` no sirve por estabilidad — mejor un hash determinista o un identity en una tabla materializada).
   Decidir con el usuario antes de modificar la vista en produccion.
 
+## Funcional — MCP Config Vault
+
+- [ ] **#19 `config-vault`: aceptar token ya emitido en vez de la contrasena cruda** — hoy `login(username, password)` recibe la contrasena en claro, que pasa por el contexto del agente. Agregar una via alterna para no exponerla: que las tools acepten directamente un `access_token` obtenido por fuera (el usuario hace login en el IAM y pega solo el token), o una tool `set_token(token)`/parametro que valide el JWT sin requerir la contrasena. `login()` con password queda como conveniencia opcional. Objetivo: que el secreto que transita por el agente sea un token de 15 min y no la credencial permanente.
+
 ## Funcional — MCP de BDs (segunda iteracion)
 
 - [ ] **#5 MCP MySQL GLPI** — poblar `data-mcp-servers/mysql-glpi/dab-config.json` con entidades:
