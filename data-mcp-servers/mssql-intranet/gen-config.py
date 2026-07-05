@@ -1,4 +1,4 @@
-"""Generador del dab-config.json para la BD INTRANET (192.168.50.86).
+"""Generador del dab-config.json para la BD INTRANET (sqlcorp.ie).
 
 DAB no expone "todas las tablas" con un wildcard: cada entidad debe declararse.
 Este script introspecta INFORMATION_SCHEMA y emite un dab-config.json read-only
@@ -138,7 +138,7 @@ def main() -> None:
             "permissions": [{"role": "anonymous", "actions": [read_action]}],
             "description": descriptions.get(
                 table_name,
-                f"BD INTRANET (192.168.50.86), {table_type.lower()} dbo.{table_name}. "
+                f"BD INTRANET (sqlcorp.ie), {table_type.lower()} dbo.{table_name}. "
                 "SOLO LECTURA. TODO: refinar descripcion de negocio.",
             ),
         }
@@ -168,7 +168,7 @@ def main() -> None:
                 },
                 "description": (
                     "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques "
-                    "(192.168.50.86). Expone todas las tablas y vistas del schema dbo. "
+                    "(sqlcorp.ie). Expone todas las tablas y vistas del schema dbo. "
                     f"{len(entities)} entidades. Generado automaticamente por gen-config.py."
                 ),
             },

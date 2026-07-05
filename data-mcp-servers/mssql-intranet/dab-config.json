@@ -33,7 +33,7 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (192.168.50.86). Expone todas las tablas y vistas del schema dbo. 16 entidades. Generado automaticamente por gen-config.py."
+      "description": "MCP de SOLO LECTURA sobre la BD INTRANET de Integral de Empaques (sqlcorp.ie). Expone todas las tablas y vistas del schema dbo. 16 entidades. Generado automaticamente por gen-config.py."
     }
   },
   "entities": {
@@ -50,7 +50,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.ArchivoAdjuntoPersona. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.ArchivoAdjuntoPersona. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Area": {
       "source": {
@@ -65,7 +65,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Area. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.Area. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Documento": {
       "source": {
@@ -80,7 +80,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Documento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.Documento. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Documentoempresa": {
       "source": {
@@ -95,7 +95,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.DocumentoEmpresa. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.DocumentoEmpresa. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Empresa": {
       "source": {
@@ -110,7 +110,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Empresa. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.Empresa. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Evidenciamantenimiento": {
       "source": {
@@ -125,7 +125,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.EvidenciaMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.EvidenciaMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Inspeccion": {
       "source": {
@@ -140,7 +140,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Inspeccion. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.Inspeccion. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Inspeccionareacategoria": {
       "source": {
@@ -155,7 +155,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionAreaCategoria. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.InspeccionAreaCategoria. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Inspeccioncalificacion": {
       "source": {
@@ -170,7 +170,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionCalificacion. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.InspeccionCalificacion. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Inspeccioncategoria": {
       "source": {
@@ -185,7 +185,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionCategoria. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.InspeccionCategoria. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Inspeccioncriterio": {
       "source": {
@@ -200,7 +200,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.InspeccionCriterio. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.InspeccionCriterio. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Nomenclaturadocumento": {
       "source": {
@@ -215,7 +215,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.NomenclaturaDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.NomenclaturaDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Parametro": {
       "source": {
@@ -230,7 +230,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Parametro. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.Parametro. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Solicitudmantenimiento": {
       "source": {
@@ -245,7 +245,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.SolicitudMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.SolicitudMantenimiento. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Tipodocumento": {
       "source": {
@@ -260,7 +260,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.TipoDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.TipoDocumento. SOLO LECTURA. TODO: refinar descripcion de negocio."
     },
     "Usuarios": {
       "source": {
@@ -283,7 +283,7 @@
           ]
         }
       ],
-      "description": "BD INTRANET (192.168.50.86), base table dbo.Usuarios. SOLO LECTURA. TODO: refinar descripcion de negocio."
+      "description": "BD INTRANET (sqlcorp.ie), base table dbo.Usuarios. SOLO LECTURA. TODO: refinar descripcion de negocio."
     }
   }
 }

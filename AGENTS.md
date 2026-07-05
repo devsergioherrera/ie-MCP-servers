@@ -109,7 +109,7 @@ ie-MCP-servers/
 ### Nunca
 
 - Commitear `.env`, connection strings, ni passwords.
-- Tocar tablas del ERP Siesa (linked server `[192.168.50.86].REPLICA`) — solo lectura desde sistemas propios.
+- Tocar tablas del ERP Siesa (linked server `[sqlcorp.ie].REPLICA`) — solo lectura desde sistemas propios.
 - Modificar `KARDEX_BODEGA` desde un MCP.
 - Habilitar `rest` o `graphql` en `dab-config.json` (solo MCP).
 - Exponer puertos de los contenedores fuera de `127.0.0.1` (debe pasar por Nginx).

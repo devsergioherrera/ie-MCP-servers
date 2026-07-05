@@ -29,7 +29,7 @@
         "delete-record": true,
         "execute-entity": false
       },
-      "description": "MCP de lectura y escritura sobre la BD IE_MONITOR (servidor 192.168.50.86). Cubre biometria, configuracion y estado del sistema de monitoreo de IE. Todas las entidades aceptan create/update/delete via mcp_writer."
+      "description": "MCP de lectura y escritura sobre la BD IE_MONITOR (servidor sqlcorp.ie). Cubre biometria, configuracion y estado del sistema de monitoreo de IE. Todas las entidades aceptan create/update/delete via mcp_writer."
     }
   },
   "entities": {
@@ -41,7 +41,7 @@
       "permissions": [
         { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: registros de marcaciones / huellas / lectores biometricos (control de asistencia o acceso). BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA (create/update/delete) via mcp_writer."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: registros de marcaciones / huellas / lectores biometricos (control de asistencia o acceso). BD IE_MONITOR, servidor sqlcorp.ie. ESCRITURA HABILITADA (create/update/delete) via mcp_writer."
     },
 
     "BiometricosDestinatarios": {
@@ -52,7 +52,7 @@
       "permissions": [
         { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: destinatarios (emails/usuarios) que reciben notificaciones/reportes derivados de BIOMETRICOS. BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: destinatarios (emails/usuarios) que reciben notificaciones/reportes derivados de BIOMETRICOS. BD IE_MONITOR, servidor sqlcorp.ie. ESCRITURA HABILITADA."
     },
 
     "MonitoreoAlertasLog": {
@@ -63,7 +63,7 @@
       "permissions": [
         { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: log historico de alertas disparadas por el sistema de monitoreo (eventos, fechas, severidad, mensaje, estado). BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA — los agentes pueden insertar nuevos eventos de alerta."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: log historico de alertas disparadas por el sistema de monitoreo (eventos, fechas, severidad, mensaje, estado). BD IE_MONITOR, servidor sqlcorp.ie. ESCRITURA HABILITADA — los agentes pueden insertar nuevos eventos de alerta."
     },
 
     "MonitoreoConfig": {
@@ -74,7 +74,7 @@
       "permissions": [
         { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: configuracion del sistema de monitoreo: que chequea, umbrales, frecuencia, destinatarios. BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA — los agentes pueden ajustar umbrales o agregar checkers."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: configuracion del sistema de monitoreo: que chequea, umbrales, frecuencia, destinatarios. BD IE_MONITOR, servidor sqlcorp.ie. ESCRITURA HABILITADA — los agentes pueden ajustar umbrales o agregar checkers."
     },
 
     "MonitoreoEstadoChecker": {
@@ -85,7 +85,7 @@
       "permissions": [
         { "role": "anonymous", "actions": [ "*" ] }
       ],
-      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: estado actual de cada checker del sistema de monitoreo (ultima ejecucion, ultimo resultado, fecha proxima ejecucion). BD IE_MONITOR, servidor 192.168.50.86. ESCRITURA HABILITADA — los agentes actualizan el estado tras ejecutar un check."
+      "description": "TODO: describir el proposito de negocio de esta tabla. Hipotesis: estado actual de cada checker del sistema de monitoreo (ultima ejecucion, ultimo resultado, fecha proxima ejecucion). BD IE_MONITOR, servidor sqlcorp.ie. ESCRITURA HABILITADA — los agentes actualizan el estado tras ejecutar un check."
     }
   }
 }

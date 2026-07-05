@@ -25,7 +25,7 @@ The user wants to make a new database object (table, view, or whole DB) availabl
 ## Required inputs (ask the user upfront)
 
 1. **Engine**: mssql / mysql / postgres.
-2. **Server / host**: IP or FQDN (ex: `192.168.50.86`).
+2. **Server / host**: IP or FQDN (ex: `sqlcorp.ie`).
 3. **Database name** (ex: `IE_MONITOR`).
 4. **Scope**: one of
    - single table or view (ask for exact `schema.object`)

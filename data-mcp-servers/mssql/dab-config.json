@@ -32,7 +32,7 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de solo lectura sobre SQL Server de produccion de Integral de Empaques (192.168.50.252). Cubre el sistema logistico: BD SIE (programacion de despachos: Camion, Conductor, CamionXDia, DocumentosDespachados, DetalleCamionXDia) y BD EMPAQUE(PR) (operacion de bodega: etiquetas, kardex, alistamiento). Todas las entidades son SOLO LECTURA. Para escritura sobre IE_MONITOR ver el MCP en /monitor/mcp."
+      "description": "MCP de solo lectura sobre SQL Server de produccion de Integral de Empaques (sqllog.ie). Cubre el sistema logistico: BD SIE (programacion de despachos: Camion, Conductor, CamionXDia, DocumentosDespachados, DetalleCamionXDia) y BD EMPAQUE(PR) (operacion de bodega: etiquetas, kardex, alistamiento). Todas las entidades son SOLO LECTURA. Para escritura sobre IE_MONITOR ver el MCP en /monitor/mcp."
     }
   },
   "entities": {

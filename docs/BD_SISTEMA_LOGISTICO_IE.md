@@ -101,7 +101,7 @@
 | `PTO_ENVIO` | VARCHAR | Destino/Ciudad del envío |
 | `UN_MEDIDA` | VARCHAR | Unidad de medida (UND, KG, MT) |
 
-**Relación con ERP**: Los datos se obtienen del ERP Siesa (UnoEE) mediante consultas SQL que acceden a las tablas de documentos contables (`t350_co_docto_contable`, `t470_cm_movto_invent`) vía linked server `[192.168.99.68].[UnoEE_Doron]`.
+**Relación con ERP**: Los datos se obtienen del ERP Siesa (UnoEE) mediante consultas SQL que acceden a las tablas de documentos contables (`t350_co_docto_contable`, `t470_cm_movto_invent`) vía linked server `[erp.ie].[UnoEE_Doron]`.
 
 ---
 
@@ -392,7 +392,7 @@
 - ~30k filas, ~5MB
 - Pre-filtrada a `f120_id_cia = 2` — no hay que agregar ese filtro en las queries que la consumen
 - Refresco: TRUNCATE + INSERT (~5 segundos de ventana vacía)
-- Fuente: `[192.168.99.68].[UnoEE_Doron].dbo.t120_mc_items` + criterios de línea
+- Fuente: `[erp.ie].[UnoEE_Doron].dbo.t120_mc_items` + criterios de línea
 
 ---
 
@@ -402,7 +402,7 @@
 
 ```
 1. Usuario carga Excel con remisiones
-2. Sistema valida datos del ERP (Siesa UnoEE vía linked server [192.168.99.68].[UnoEE_Doron])
+2. Sistema valida datos del ERP (Siesa UnoEE vía linked server [erp.ie].[UnoEE_Doron])
 3. Se crea registro en CAMION_X_DIA (Estado='C'), se registra FECHA_DESPACHO
 4. Se insertan remisiones en DOCUMENTOS_DESPACHADOS (ESTADO='A')
 5. Se consulta ERP para obtener ítems
@@ -496,7 +496,7 @@ Un **formato de área** es una plantilla que describe cómo deben ser los códig
 - Todas las tablas de `SIE` usan el prefijo `COD_` para claves primarias
 - Todas las tablas de `EMPAQUE(PR)` usan el prefijo `id` para claves primarias (camelCase)
 - El sistema opera en dos bases de datos diferentes (`SIE` y `EMPAQUE(PR)`)
-- El ERP externo (Siesa UnoEE) se accede vía linked server `[192.168.99.68].[UnoEE_Doron]` — solo lectura, nunca INSERT/UPDATE/DELETE
+- El ERP externo (Siesa UnoEE) se accede vía linked server `[erp.ie].[UnoEE_Doron]` — solo lectura, nunca INSERT/UPDATE/DELETE
 - La tabla `KARDEX_BODEGA` es crítica para auditorías de inventario — nunca modificar directamente
 - El Kardex de bodegas está en la aplicación **LECTURA DE BANDA** (`Frm_Kardex`)
 - La gestión de formatos de área (tablas §12–§16) es administrada desde esa misma aplicación por usuarios con perfil administrador
@@ -506,5 +506,5 @@ Un **formato de área** es una plantilla que describe cómo deben ser los códig
 
 **Autor**: Sistema IE  
 **Fecha**: Diciembre 2024 — Actualizado Junio 2026  
-**Versión**: 1.3 (agregada ITEMS_CACHE con UnidadEmpaque; correcciones de columnas reales en tablas operativas; linked server corregido a 192.168.99.68)  
+**Versión**: 1.3 (agregada ITEMS_CACHE con UnidadEmpaque; correcciones de columnas reales en tablas operativas; linked server corregido a erp.ie)  
 **Propósito**: Documentación para LLMs y desarrolladores

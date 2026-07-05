@@ -17,7 +17,7 @@ El **ie-email-service** es el único punto centralizado de envío de correo elec
 - Acepta **uno o muchos destinatarios** (Para / Cc / Cco).
 - Acepta **cuerpo HTML** con **sustitución opcional de variables** (`{{clave}}`).
 - Acepta **adjuntos** en base64 (JSON) o binarios (multipart/form-data).
-- **Registra cada envío** (éxito o fallo) en `SERVICIO_CORREOS_BD.AUDITORIA_CORREO` en `192.168.50.86`.
+- **Registra cada envío** (éxito o fallo) en `SERVICIO_CORREOS_BD.AUDITORIA_CORREO` en `sqlcorp.ie`.
 - Si la BD no está disponible, el envío sigue funcionando y la auditoría queda en los logs del proceso.
 - Responde **de forma síncrona**: la respuesta HTTP indica si el correo fue entregado o no.
 
@@ -27,12 +27,12 @@ El **ie-email-service** es el único punto centralizado de envío de correo elec
 
 | Componente | Detalle |
 |---|---|
-| Host | `linux.ie` (`192.168.51.150`) |
+| Host | `linux.ie` |
 | Contenedor | `ie-correo-service` (Docker) |
 | Puerto interno | `5090 → 8080` |
 | Nginx | `/etc/nginx/conf.d/correo.ie.conf` |
 | Repositorio | `github.com/Integral-de-Empaques-ORG/ie-email-service` |
-| BD auditoría | `SERVICIO_CORREOS_BD.AUDITORIA_CORREO` en `192.168.50.86` |
+| BD auditoría | `SERVICIO_CORREOS_BD.AUDITORIA_CORREO` en `sqlcorp.ie` |
 
 ---
 

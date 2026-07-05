@@ -126,7 +126,7 @@ imagen institucional) y lo entrega a ese servicio por HTTP con una clave de API.
 
 ### Servidor
 
-El sistema corre en el servidor Linux de IE (`linux.ie`, IP `192.168.51.150`, Ubuntu 24.04 LTS), dentro de contenedores Docker.
+El sistema corre en el servidor Linux de IE (`linux.ie`, Ubuntu 24.04 LTS), dentro de contenedores Docker.
 
 | Componente | Contenedor | Puerto interno |
 |---|---|---|
@@ -149,7 +149,7 @@ dominio, los navegadores corporativos no muestran advertencias.
 
 ### Base de datos
 
-Los datos del IAM (usuarios, roles, permisos, sesiones, auditoría) viven en la base de datos **`AutenticacionDB`** del SQL Server corporativo (`192.168.50.86`). Esta base es independiente de las demás bases del ERP.
+Los datos del IAM (usuarios, roles, permisos, sesiones, auditoría) viven en la base de datos **`AutenticacionDB`** del SQL Server corporativo (`sqlcorp.ie`). Esta base es independiente de las demás bases del ERP.
 
 ### Acceso al servidor para administradores de TI
 
@@ -165,10 +165,10 @@ Desde fuera de la red de la empresa se necesita VPN activa para alcanzar `linux.
 
 | Servicio | IP | Puerto | Protocolo |
 |---|---|---|---|
-| Portal IAM (HTTPS) | 192.168.51.150 | 443 | TCP |
-| Portal IAM (HTTP → redirige) | 192.168.51.150 | 80 | TCP |
-| API interna | 192.168.51.150 | 8082 | TCP (solo LAN) |
-| SQL Server IAM | 192.168.50.86 | 1433 | TCP (solo LAN) |
+| Portal IAM (HTTPS) | linux.ie | 443 | TCP |
+| Portal IAM (HTTP → redirige) | linux.ie | 80 | TCP |
+| API interna | linux.ie | 8082 | TCP (solo LAN) |
+| SQL Server IAM | sqlcorp.ie | 1433 | TCP (solo LAN) |
 
 > El IAM ya no habla SMTP directo: el envío de correo pasa por el servicio centralizado `correo.ie`
 > (mismo servidor Linux). La conectividad con Exchange es responsabilidad de ese servicio, no del IAM.
@@ -189,7 +189,7 @@ Los archivos sensibles del IAM que **no están en el repositorio git** están in
 El backup respalda `/etc/nginx` entero como un `.tar.gz`, así que la config de nginx **y** el
 certificado TLS (`iam.ie.crt.pem`, `iam.ie.key`, `root-ca.pem`) quedan cubiertos automáticamente.
 
-Los backups se guardan mensualmente en `\\192.168.50.252\Home\20.Tecnologia\13.BACKUPS\LinuxVM`.
+Los backups se guardan mensualmente en un share de backup corporativo (`\\backup-nas\Backups\LinuxVM`).
 
 > **Crítico:** si se pierden las llaves RSA y no hay backup, todas las sesiones activas quedan invalidadas y hay que regenerar las llaves. Los usuarios podrán volver a ingresar, pero sus sesiones actuales se cierran.
 
@@ -201,7 +201,7 @@ Los backups se guardan mensualmente en `\\192.168.50.252\Home\20.Tecnologia\13.B
 |---|---|---|
 | No se puede entrar al portal | Contenedor caído o nginx down | `ssh linux.ie` → `cd /proyectos/ie-IAM && docker compose up -d` |
 | Los correos no llegan | Servicio `correo.ie` caído o sin conectividad a Exchange | Verificar `http://correo.ie/health`; revisar el contenedor `ie-correo-service` (ver Servicio-Correo-IE.md) |
-| "Error de base de datos" al ingresar | SQL Server no alcanzable (VPN, red) | Verificar conectividad a `192.168.50.86`; verificar VPN si aplica |
+| "Error de base de datos" al ingresar | SQL Server no alcanzable (VPN, red) | Verificar conectividad a `sqlcorp.ie`; verificar VPN si aplica |
 | Advertencia de certificado en el navegador | Equipo fuera del dominio sin la CA interna | Instalar `root-ca.pem` en las entidades de certificación raíz de confianza del equipo |
 | Un usuario quedó bloqueado | 5 intentos fallidos | El Superadmin lo desbloquea desde Usuarios → Activar |
 | El sistema no tiene administrador | Eliminación accidental del último Superadmin | No puede pasar — el sistema lo impide. Si ocurre por corrupción de BD, TI debe insertar el rol directamente en `AutenticacionDB` |
