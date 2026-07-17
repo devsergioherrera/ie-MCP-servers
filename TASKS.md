@@ -22,11 +22,11 @@ Pendientes ordenados por prioridad. Marcar `[x]` al cerrar.
 
 ## Funcional — MCP de BDs (segunda iteracion)
 
-- [ ] **#5 MCP MySQL GLPI** — poblar `data-mcp-servers/mysql-glpi/dab-config.json` con entidades:
-  - `glpi_tickets`, `glpi_users`, `glpi_groups`, `glpi_entities`, `glpi_ticketcategories`, `glpi_ticket_users`.
-  - Anadir descripciones por entidad/campo.
-  - Descomentar bloque `mcp-mysql-glpi` en `deploy/docker-compose.yml`.
-  - Anadir `location /glpi/` en `deploy/nginx/mcp.ie.conf`.
+- [x] **#5 MCP MySQL GLPI** — en vez de whitelist manual de tablas, `data-mcp-servers/mysql-glpi/gen-config.py` introspecciona `INFORMATION_SCHEMA` y expone TODAS las tablas del schema `glpi-ie` (host `intempserv8`), salvo `glpi_config`/`glpi_crontasklogs`/`glpi_logs`. Bloque `mcp-mysql-glpi` ya descomentado en `docker-compose.yml` y `location /glpi/` ya en `deploy/nginx/mcp.ie.conf`. Pendiente para desplegar:
+  1. Admin ejecuta `data-mcp-servers/mysql-glpi/grants.sql` en `intempserv8` (crea `mcp_reader`, `GRANT SELECT` sobre todo el schema).
+  2. Completar `MYSQL_GLPI_CONN` en `deploy/.env` (host/db ya están, falta el password real).
+  3. Correr `gen-config.py` (ver docstring del script) para generar `dab-config.json` con las entidades reales.
+  4. `docker compose up -d --build mcp-mysql-glpi` + copiar `location /glpi/` al proxy real (`ie-proxy`).
 - [ ] **#6 MCP PostgreSQL OpenProject** — analogo a #5 con tablas:
   - `work_packages`, `projects`, `users`, `types`, `statuses`, `time_entries`, `members`.
 - [ ] **#7 Confirmar version final de DAB** — hoy se usa `1.7.93`. Cuando salga `2.0` GA (hoy en RC), evaluar upgrade. **Anomalia conocida en 1.7.93**: `runtime.mcp.dml-tools.execute-entity=false` no oculta la tool `execute_entity` de `tools/list`. Y `aggregate-records=true` no la expone. Es inofensivo (sin SPs registrados como `custom-tool`, `execute_entity` no hace nada utilizable). Probable que 2.0 lo arregle.

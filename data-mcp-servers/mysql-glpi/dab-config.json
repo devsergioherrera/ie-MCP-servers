@@ -26,7 +26,7 @@
         "delete-record": false,
         "execute-entity": false
       },
-      "description": "MCP de solo lectura sobre MySQL de GLPI (sistema de tickets de Integral de Empaques). SCAFFOLDING - sin entidades expuestas todavia."
+      "description": "MCP de solo lectura sobre MySQL de GLPI (intempserv8, sistema de tickets de Integral de Empaques). PLACEHOLDER - este archivo se sobreescribe con la salida de gen-config.py, que introspecciona el schema y expone todas las tablas automaticamente."
     }
   },
   "entities": {}

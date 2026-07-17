@@ -57,7 +57,7 @@ Landing page para `http://mcp.ie` con estetica minimalista tipo Apple, animacion
 | ---------------- | ------------------------------ | ------------------------------- | ------------ |
 | `mcp-mssql`      | SQL Server (SIE + EMPAQUE(PR)) | `http://mcp.ie/mssql/mcp`       | Implementado |
 | `mcp-ie-docs`    | Filesystem (`/docs/*.md`)      | `http://mcp.ie/docs/mcp`        | Implementado |
-| `mcp-mysql-glpi` | MySQL GLPI                     | `http://mcp.ie/glpi/mcp`        | Scaffolding  |
+| `mcp-mysql-glpi` | MySQL GLPI (`intempserv8`)     | `http://mcp.ie/glpi/mcp`        | Listo para desplegar (falta crear `mcp_reader` y correr `gen-config.py`) |
 | `mcp-pg-op`      | PostgreSQL OpenProject         | `http://mcp.ie/openproject/mcp` | Scaffolding  |
 
 **Primera iteracion (MSSQL)** — entidades expuestas:
@@ -105,13 +105,15 @@ CREATE USER mcp_reader FOR LOGIN mcp_reader;
 GRANT SELECT ON dbo.vw_EtiquetasBI TO mcp_reader;
 ```
 
-**MySQL** (cuando se implemente):
+**MySQL** (GLPI, host `intempserv8`) — ver `data-mcp-servers/mysql-glpi/grants.sql`:
 
 ```sql
 CREATE USER 'mcp_reader'@'%' IDENTIFIED BY '<PASSWORD>';
-GRANT SELECT ON glpi.* TO 'mcp_reader'@'%';
+GRANT SELECT ON `glpi-ie`.* TO 'mcp_reader'@'%';
 FLUSH PRIVILEGES;
 ```
+
+Con eso `mcp_reader` puede leer todo el schema; `gen-config.py` se encarga de whitelistear las tablas expuestas vía MCP (excluye `glpi_config`/`glpi_crontasklogs`/`glpi_logs` por contener secretos/ruido de auditoría).
 
 **PostgreSQL** (cuando se implemente):
 

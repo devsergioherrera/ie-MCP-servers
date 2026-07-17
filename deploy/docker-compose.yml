@@ -7,7 +7,7 @@ name: ie-mcp
 #   5003  mcp-ie-docs         MCP Python de markdowns (logica de negocio)
 #   5004  mcp-mssql-explorer  MCP Python para explorar SQL (esquema, read-only)
 #   5005  mcp-mssql-intranet  SQL Server INTRANET (sqlcorp.ie), solo lectura
-#   5006  mcp-mysql-glpi      (scaffolding — descomentar cuando este listo)
+#   5006  mcp-mysql-glpi      MySQL GLPI (intempserv8), solo lectura, todas las tablas
 #   5007  mcp-pg-op           (scaffolding — descomentar cuando este listo)
 #   5008  mcp-config-vault    Import/export de configs sensibles (auth IAM)
 #   5009  mcp-docs-api        FastAPI metadata de MCP servers (uso interno UI)
@@ -171,16 +171,24 @@ services:
         max-size: "10m"
         max-file: "5"
 
+  mcp-mysql-glpi:
+    build: ../data-mcp-servers/mysql-glpi
+    container_name: mcp-mysql-glpi
+    restart: unless-stopped
+    environment:
+      MYSQL_GLPI_CONN: ${MYSQL_GLPI_CONN}
+    ports:
+      - "127.0.0.1:5006:5000"
+    networks: [mcp_net]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
   # ============================================================
   # Scaffolding listo, descomentar cuando se definan entidades
   # ============================================================
-  # mcp-mysql-glpi:
-  #   build: ../data-mcp-servers/mysql-glpi
-  #   container_name: mcp-mysql-glpi
-  #   ports:
-  #     - "127.0.0.1:5006:5000"
-  #   networks: [mcp_net]
-  #
   # mcp-pg-op:
   #   build: ../data-mcp-servers/postgres-openproject
   #   container_name: mcp-pg-op
